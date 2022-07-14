@@ -1,0 +1,3 @@
+[submodule "ext/CMatrix"]
+	path = ext/CMatrix
+	url = git@github.com:Kiyoshika/CMatrix.git

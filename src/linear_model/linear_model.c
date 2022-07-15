@@ -9,25 +9,35 @@ static void err(const char* msg)
 
 void gmf_model_linear_init_inplace(
 	LinearModel** lm,
-	const LinearModelParams params)
+	const LinearModelParams* params)
 {
 	void* alloc = malloc(sizeof(LinearModel));
 	if (!alloc)
 		err("Couldn't allocate memory for LinearModel.");
 	*lm = alloc;
-	(*lm)->params = params; // store a copy of the params to avoid taking ownership
+	(*lm)->params = params; 
 
-	// TODO: do a parameter check for valid parameters (e.g., n_iterations > 0)
-	
 	// by default we'll init X and W to NULL since they aren't set until fit() is called
 	(*lm)->X = NULL;
 	(*lm)->W = NULL;
 }
 
-LinearModel* gmf_model_linear_init(
-	const LinearModelParams params)
+// set default parameters
+void __default_params(LinearModelParams* params)
+{
+	params->n_iterations = 100;
+	params->learning_rate = 0.001f;
+}
+
+LinearModel* gmf_model_linear_init()
 {
 	LinearModel* lm = NULL;
+	LinearModelParams* params = NULL;
+	void* alloc = malloc(sizeof(LinearModelParams));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModeParams.");
+	params = alloc;
+	__default_params(params);
 	gmf_model_linear_init_inplace(&lm, params);
 	return lm;
 }
@@ -66,11 +76,26 @@ static void __init_W(LinearModel** lm)
 	mat_random(&(*lm)->W, -1.0f, 1.0f);
 }
 
+// linear must must have:
+// * activation function
+// * loss function
+// * loss gradient
+void __check_functions(const LinearModel* lm)
+{
+	if (!lm->activation)
+		err("LinearModel must have activation function. See gmf_activation_...");
+	if (!lm->loss)
+		err("LinearModel must have loss function. See gmf_loss_...");
+	if (!lm->loss_gradient)
+		err("LinearModel must have loss gradient. See gmf_loss_gradient...");
+}
+
 void gmf_model_linear_fit(
 		LinearModel** lm,
 		const Matrix* X,
 		const Matrix* Y)
 {
+	__check_functions(*lm);
 	__init_X(lm, X);
 	__init_W(lm);
 
@@ -85,8 +110,10 @@ void gmf_model_linear_fit(
 
 	float initial_loss = 0.0f;
 
+	printf("max iter: %zu\n", (*lm)->params->n_iterations);
+
 	// begin training
-	for (size_t iter = 0; iter < (*lm)->params.n_iterations; ++iter)
+	for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	{
 		// get linear combination of data and weights
 		mat_multiply_inplace((*lm)->X, (*lm)->W, &Yhat);
@@ -96,7 +123,7 @@ void gmf_model_linear_fit(
 
 		// only print loss 10 times for any given number
 		// of iterations
-		if (iter % (size_t)((float)(*lm)->params.n_iterations / 10.0f) == 0)
+		if (iter % (size_t)((float)(*lm)->params->n_iterations / 10.0f) == 0)
 		{
 			float loss = (*lm)->loss(Y, Yhat);
 			if (iter == 0)
@@ -114,9 +141,7 @@ void gmf_model_linear_fit(
 		(*lm)->loss_gradient(Y, Yhat, (*lm)->X, &loss_grad);
 
 		// update weights
-		// TODO: add learning rate as parameter
-		// for now I will use 0.0001f
-		mat_multiply_s(&loss_grad, 0.0001f);
+		mat_multiply_s(&loss_grad, (*lm)->params->learning_rate);
 		mat_subtract_e(&(*lm)->W, loss_grad);
 	}	
 
@@ -132,6 +157,8 @@ void gmf_model_linear_free(
 		mat_free(&(*lm)->X);
 	if ((*lm)->W)
 		mat_free(&(*lm)->W);
+	free((*lm)->params);
+	(*lm)->params = NULL;
 	free(*lm);
 	*lm = NULL;
 }

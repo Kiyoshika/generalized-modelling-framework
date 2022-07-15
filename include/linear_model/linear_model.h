@@ -20,13 +20,14 @@ typedef enum LinearModelType
 
 typedef struct LinearModelParams
 {
-	size_t n_iterations; // total iterations to train model for
+	size_t n_iterations; 
+	float learning_rate;
 	LinearModelType model_type; // type of optimization
 } LinearModelParams;
 
 typedef struct LinearModel
 {
-	LinearModelParams params; // model parameters (set by user before calling init())
+	LinearModelParams* params; 
 	Matrix* X; // internal X grabbed by fit() to add the bias term automatically
 	Matrix* W; // weights (coefficients of the model) - set during fit()
 	void (*activation)(Matrix**);
@@ -35,15 +36,12 @@ typedef struct LinearModel
 } LinearModel;
 
 // initialize new linear model by passing address of (NULL) pointer 
-// NOTE: a copy of params is taken incase user wants to use same struct in other models
 void gmf_model_linear_init_inplace(
 	LinearModel** lm,
-	const LinearModelParams params);
+	const LinearModelParams* params);
 
 // initalize new linear model and return a pointer
-// NOTE: a copy of params is taken incase user wants to use same struct in other models
-LinearModel* gmf_model_linear_init(
-	const LinearModelParams params);
+LinearModel* gmf_model_linear_init();
 
 // train model given actuals: X - (r, c) matrix. Y - (r, 1) matrix.
 // NOTE: a bias term is automatically added to X and stored internally so it becomes an (r+1, c) matrix.

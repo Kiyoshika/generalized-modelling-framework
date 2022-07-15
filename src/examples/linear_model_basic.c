@@ -4,13 +4,15 @@
 
 int main()
 {
-	LinearModelParams params;
-	params.n_iterations = 10000;
-
-	LinearModel* lm = gmf_model_linear_init(params);
+	// setup model and its functions
+	LinearModel* lm = gmf_model_linear_init();
 	lm->activation = &gmf_activation_identity;
 	lm->loss = &gmf_loss_squared;
 	lm->loss_gradient = &gmf_loss_gradient_squared;
+
+	// setup model parameters
+	lm->params->n_iterations = 1000;
+	lm->params->learning_rate = 0.00001f;
 
 	Matrix* X = NULL;
 	mat_init(&X, 10000, 50);

@@ -9,3 +9,6 @@ target_link_libraries(linear_model matrix)
 
 add_executable(testing testing.c)
 target_link_libraries(testing linear_model)
+
+add_executable(testing2 testing2.c)
+target_link_libraries(testing2 linear_model)

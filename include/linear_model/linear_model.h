@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "activations.h"
+#include "losses.h"
+#include "loss_gradients.h"
+
 // forward declaration
 typedef struct Matrix Matrix;
 
@@ -16,8 +20,6 @@ typedef enum LinearModelType
 
 typedef struct LinearModelParams
 {
-	// float (*activation)(...) // activation function pointer, e.g., gmf_activation_identity
-	// float (*loss)(...) // loss function pointer, e.g., gmf_loss_squared
 	size_t n_iterations; // total iterations to train model for
 	LinearModelType model_type; // type of optimization
 } LinearModelParams;
@@ -27,6 +29,9 @@ typedef struct LinearModel
 	LinearModelParams params; // model parameters (set by user before calling init())
 	Matrix* X; // internal X grabbed by fit() to add the bias term automatically
 	Matrix* W; // weights (coefficients of the model) - set during fit()
+	void (*activation)(Matrix**);
+	float (*loss)(const Matrix*, const Matrix*); 
+	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, Matrix**);
 } LinearModel;
 
 // initialize new linear model by passing address of (NULL) pointer 

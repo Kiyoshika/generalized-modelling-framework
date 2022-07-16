@@ -150,6 +150,25 @@ void gmf_model_linear_fit(
 
 }
 
+Matrix* gmf_model_linear_predict(
+		const LinearModel* lm,
+		const Matrix* X)
+{
+	Matrix* Yhat= mat_multiply(X, lm->W);
+	lm->activation(&Yhat);
+	
+	return Yhat;
+}
+
+void gmf_model_linear_predict_inplace(
+		const LinearModel* lm,
+		const Matrix* X,
+		Matrix** Yhat)
+{
+	mat_multiply_inplace(X, lm->W, Yhat);
+	lm->activation(Yhat);
+}
+
 void gmf_model_linear_free(
 	LinearModel** lm)
 {

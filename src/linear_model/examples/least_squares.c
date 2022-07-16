@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "linear_model.h"
 #include "matrix.h"
+#include "util.h"
 
 int main()
 {
@@ -22,17 +23,8 @@ int main()
 	mat_init(&Y, 10, 1);
 	mat_random(&Y, 2.0f, 15.0f);
 
-
-	// make a copy of X with bias term
-	// TODO: add gmf_util_add_bias_term(X) so users don't have to do it manually
-	Matrix* X_test = NULL;
-	mat_init(&X_test, X->n_rows, X->n_columns + 1);
-	for (size_t r = 0; r < X->n_rows; ++r)
-	{
-		mat_set(&X_test, r, 0, 1.0f);
-		for (size_t c = 1; c < X->n_columns; ++c)
-			mat_set(&X_test, r, c, mat_at(X, r, c));
-	}
+	Matrix* X_test = mat_copy(X);
+	gmf_util_add_bias(&X_test);
 
 	gmf_model_linear_fit(&lm, X, Y);
 	
@@ -47,6 +39,7 @@ int main()
 
 	gmf_model_linear_free(&lm);
 	mat_free(&X);
+	mat_free(&X_test);
 	mat_free(&X_test);
 	mat_free(&Y);
 	mat_free(&preds);

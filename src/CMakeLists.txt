@@ -1,3 +1,9 @@
+add_library(gmf_util gmf_util.c)
+target_include_directories(util PUBLIC ${GMF_SOURCE_DIR}/include)
+target_include_directories(util PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
+target_link_libraries(gmf_util matrix)
+
+
 add_library(linear_model 
 	linear_model/linear_model.c
 	linear_model/activations.c
@@ -5,7 +11,8 @@ add_library(linear_model
 	linear_model/loss_gradients.c)
 target_include_directories(linear_model PUBLIC ${GMF_SOURCE_DIR}/include/linear_model)
 target_include_directories(linear_model PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
-target_link_libraries(linear_model matrix)
+target_link_libraries(linear_model gmf_util matrix)
+
 
 # examples for linear model
 if (${EXAMPLES})

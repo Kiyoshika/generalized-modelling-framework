@@ -8,6 +8,8 @@ target_include_directories(linear_model PUBLIC ${CMatrix_SOURCE_DIR}/include/mat
 target_link_libraries(linear_model matrix)
 
 # examples for linear model
-add_executable(linear_model_basic examples/linear_model_basic.c)
-target_link_libraries(linear_model_basic linear_model)
-
+if (${EXAMPLES})
+	add_executable(least_squares linear_model/examples/least_squares.c)
+	target_link_libraries(least_squares linear_model)
+	set_target_properties(least_squares PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
+endif()

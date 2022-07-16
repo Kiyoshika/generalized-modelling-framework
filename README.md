@@ -12,7 +12,10 @@ Then follow the typical CMake prodecure:
 
 * `cd generalized-modelling-framework`
 * `mkdir build && cd build`
-* `cmake ..`
+
+If you want to compile all examples, pass the `-DEXAMPLES=ON` to CMake, otherwise ignore
+
+* `cmake ..` or `cmake -DEXAMPLES=ON ..`
 * `make`
 
 This will generate a `libgmf.a` static library. At the moment I have no global install targets but will add later.

@@ -1,5 +1,6 @@
 #include "linear_model.h"
 #include "matrix.h"
+#include "gmf_util.h"
 
 static void err(const char* msg)
 {

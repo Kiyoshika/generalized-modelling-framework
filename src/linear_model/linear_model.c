@@ -29,6 +29,9 @@ void __default_params(LinearModelParams* params)
 	params->n_iterations = 100;
 	params->learning_rate = 0.001f;
 	params->early_stop_threshold = 0.0001f;
+	params->early_stop_iterations = 0;
+	params->model_type = CLASSIC;
+	params->batch_size = 0;
 }
 
 LinearModel* gmf_model_linear_init()
@@ -41,6 +44,7 @@ LinearModel* gmf_model_linear_init()
 	params = alloc;
 	__default_params(params);
 	gmf_model_linear_init_inplace(&lm, params);
+
 	return lm;
 }
 
@@ -123,11 +127,12 @@ void gmf_model_linear_fit(
 	__init_X(lm, X);
 	__init_W(lm);
 
-	// TODO: determine whether CLASSIC, BATCH or STOCHASTIC was chosen
-	// for now, I will just implement the classic version
-
-	Matrix* Yhat = NULL;
-	mat_init(&Yhat, (*lm)->X->n_rows, 1);
+	// set default batch size if one wasn't set (default of 25% original data size)
+	if ((*lm)->params->model_type == BATCH && (*lm)->params->batch_size == 0)
+		(*lm)->params->batch_size = (*lm)->X->n_rows / 4;
+	// set default early_stop_iterations if one wasn't set (default is 10% original iterations)
+	if ((*lm)->params->early_stop_iterations == 0)
+		(*lm)->params->early_stop_iterations = (*lm)->params->n_iterations / 10;
 
 	Matrix* loss_grad = NULL;
 	mat_init(&loss_grad, (*lm)->X->n_columns, 1);
@@ -136,53 +141,27 @@ void gmf_model_linear_fit(
 	float previous_loss = 0.0f;
 	size_t tolerance_counter = 0;
 	bool stop_early = false;
-	size_t early_stop_iterations = (*lm)->params->n_iterations / 10;
 
 	printf("max iter: %zu\n", (*lm)->params->n_iterations);
 
 	// begin training
-	for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
+	switch((*lm)->params->model_type)
 	{
-		// get linear combination of data and weights
-		mat_multiply_inplace((*lm)->X, (*lm)->W, &Yhat);
-		
-		// apply activation
-		(*lm)->activation(&Yhat);
-
-		// compute loss and check early stop criteria
-		float loss = (*lm)->loss(Y, Yhat);
-		stop_early = __check_loss_tolerance(loss, previous_loss, (*lm)->params->early_stop_threshold, &tolerance_counter, early_stop_iterations);
-		if (stop_early)
+		case CLASSIC:
+			#include "./model_types/linear_model_classic.c"
 			break;
-		previous_loss = loss;
+		case BATCH:
+			#include "./model_types/linear_model_batch.c"
+			break;
+		case STOCHASTIC:
+			#include "./model_types/linear_model_stochastic.c"
+			break;
+	}
 
-		// only print loss 10 times for any given number
-		// of iterations
-		if (iter % (size_t)((float)(*lm)->params->n_iterations / 10.0f) == 0)
-		{
-			if (iter == 0)
-				initial_loss = loss;
-			else if (iter > 0 && loss > 10 * initial_loss)
-			{
-				printf("WARNING: loss blew up. Consider lowering your learning rate.\n");
-				break;
-			}
-
-			printf("Loss at iteration %zu: %f\n", iter, loss);
-		}	
-
-
-		(*lm)->loss_gradient(Y, Yhat, (*lm)->X, &loss_grad);
-
-		// update weights
-		mat_multiply_s(&loss_grad, (*lm)->params->learning_rate);
-		mat_subtract_e(&(*lm)->W, loss_grad);
-	}	
-
-	if (!stop_early)
+	// only display this message if early stopping is not disabled
+	if (!stop_early && (*lm)->params->early_stop_iterations < (*lm)->params->n_iterations)
 		printf("WARNING: model may not have converged. Consider increasing iterations or learning rate.\n");
 
-	mat_free(&Yhat);
 	mat_free(&loss_grad);
 
 }

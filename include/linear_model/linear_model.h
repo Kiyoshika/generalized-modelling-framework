@@ -26,7 +26,9 @@ typedef struct LinearModelParams
 	size_t n_iterations; 
 	float learning_rate;
 	float early_stop_threshold;
+	size_t early_stop_iterations;
 	LinearModelType model_type; // type of optimization
+	size_t batch_size;
 } LinearModelParams;
 
 typedef struct LinearModel

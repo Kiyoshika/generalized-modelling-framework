@@ -1,6 +1,6 @@
 for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 {
-	// sample single point (stochastic optimization)
+	// sample subset of points (batch optimization)
 	void* s_alloc = calloc((*lm)->params->batch_size, sizeof(size_t));
 	if (!s_alloc)
 		err("Couldn't allocate memory when trying to sample data.");

@@ -28,6 +28,7 @@ void __default_params(LinearModelParams* params)
 {
 	params->n_iterations = 100;
 	params->learning_rate = 0.001f;
+	params->early_stop_threshold = 0.0001f;
 }
 
 LinearModel* gmf_model_linear_init()
@@ -91,6 +92,28 @@ void __check_functions(const LinearModel* lm)
 		err("LinearModel must have loss gradient. See gmf_loss_gradient...");
 }
 
+// check if loss hasn't really improved for N iterations
+bool __check_loss_tolerance(
+		const float loss, 
+		const float previous_loss, 
+		const float tolerance,
+		size_t* tolerance_counter,
+		const size_t early_stop_iterations)
+{
+	if (fabsf(loss - previous_loss) < tolerance)
+		(*tolerance_counter)++;
+	else
+		*tolerance_counter = 0;
+
+	if (*tolerance_counter >= early_stop_iterations)
+	{
+		printf("NOTE: no improvement in loss after %zu consecutive iterations. Stopped early.\n", early_stop_iterations);
+		return true;
+	}
+
+	return false;
+}
+
 void gmf_model_linear_fit(
 		LinearModel** lm,
 		const Matrix* X,
@@ -110,6 +133,10 @@ void gmf_model_linear_fit(
 	mat_init(&loss_grad, (*lm)->X->n_columns, 1);
 
 	float initial_loss = 0.0f;
+	float previous_loss = 0.0f;
+	size_t tolerance_counter = 0;
+	bool stop_early = false;
+	size_t early_stop_iterations = (*lm)->params->n_iterations / 10;
 
 	printf("max iter: %zu\n", (*lm)->params->n_iterations);
 
@@ -122,11 +149,17 @@ void gmf_model_linear_fit(
 		// apply activation
 		(*lm)->activation(&Yhat);
 
+		// compute loss and check early stop criteria
+		float loss = (*lm)->loss(Y, Yhat);
+		stop_early = __check_loss_tolerance(loss, previous_loss, (*lm)->params->early_stop_threshold, &tolerance_counter, early_stop_iterations);
+		if (stop_early)
+			break;
+		previous_loss = loss;
+
 		// only print loss 10 times for any given number
 		// of iterations
 		if (iter % (size_t)((float)(*lm)->params->n_iterations / 10.0f) == 0)
 		{
-			float loss = (*lm)->loss(Y, Yhat);
 			if (iter == 0)
 				initial_loss = loss;
 			else if (iter > 0 && loss > 10 * initial_loss)
@@ -145,6 +178,9 @@ void gmf_model_linear_fit(
 		mat_multiply_s(&loss_grad, (*lm)->params->learning_rate);
 		mat_subtract_e(&(*lm)->W, loss_grad);
 	}	
+
+	if (!stop_early)
+		printf("WARNING: model may not have converged. Consider increasing iterations or learning rate.\n");
 
 	mat_free(&Yhat);
 	mat_free(&loss_grad);

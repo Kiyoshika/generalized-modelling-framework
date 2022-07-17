@@ -3,10 +3,13 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
 
 #include "activations.h"
 #include "losses.h"
 #include "loss_gradients.h"
+#include "gmf_util.h"
 
 // forward declaration
 typedef struct Matrix Matrix;
@@ -22,6 +25,7 @@ typedef struct LinearModelParams
 {
 	size_t n_iterations; 
 	float learning_rate;
+	float early_stop_threshold;
 	LinearModelType model_type; // type of optimization
 } LinearModelParams;
 

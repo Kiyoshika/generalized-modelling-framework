@@ -1,6 +1,7 @@
 #include "linear_model.h"
 #include "linear_model_ovr.h"
 #include "matrix.h"
+#include "vector.h"
 #include "gmf_util.h"
 
 static void err(const char* msg)
@@ -93,125 +94,45 @@ LinearModelOVR* gmf_model_linear_ovr_init(const size_t n_classes)
 	return lm;
 }
 
-/*
-static void __init_X(
-		LinearModel** lm,
-		const Matrix* X)
+static bool __filter_class(const Vector* row, float* args)
 {
-	// if fit is called multiple times, need to check
-	// if X is already initialized
-	if ((*lm)->X)
-		mat_free(&(*lm)->X);
-
-	// create a copy of X and add the bias term
-	Matrix* X_cpy = NULL;
-	mat_init(&X_cpy, X->n_rows, X->n_columns + 1);
-	for (size_t r = 0; r < X_cpy->n_rows; ++r)
-	{
-		mat_set(&X_cpy, r, 0, 1.0f);
-		for (size_t c = 1; c < X_cpy->n_columns; ++c)
-			mat_set(&X_cpy, r, c, mat_at(X, r, c - 1));
-	}
-	(*lm)->X = X_cpy;
+	return fabsf(vec_at(row, 0) - args[0]) < 0.001f || fabsf(vec_at(row, 0) - args[1]) < 0.001f;
 }
 
-static void __init_W(LinearModel** lm)
-{
-	// if fit is called multiple times, need to check
-	// if W is already initialized
-	if ((*lm)->W)
-		mat_free(&(*lm)->W);
-
-	// initialize random weights in [-1, 1]
-	(*lm)->W = NULL; 
-	mat_init(&(*lm)->W, (*lm)->X->n_columns, 1);
-	mat_random(&(*lm)->W, -1.0f, 1.0f);
-}
-
-// linear must must have:
-// * activation function
-// * loss function
-// * loss gradient
-void __check_functions(const LinearModel* lm)
-{
-	if (!lm->activation)
-		err("LinearModel must have activation function. See gmf_activation_...");
-	if (!lm->loss)
-		err("LinearModel must have loss function. See gmf_loss_...");
-	if (!lm->loss_gradient)
-		err("LinearModel must have loss gradient. See gmf_loss_gradient...");
-}
-
-// check if loss hasn't really improved for N iterations
-bool __check_loss_tolerance(
-		const float loss, 
-		const float previous_loss, 
-		const float tolerance,
-		size_t* tolerance_counter,
-		const size_t early_stop_iterations)
-{
-	if (fabsf(loss - previous_loss) < tolerance)
-		(*tolerance_counter)++;
-	else
-		*tolerance_counter = 0;
-
-	if (*tolerance_counter >= early_stop_iterations)
-	{
-		printf("NOTE: no improvement in loss after %zu consecutive iterations. Stopped early.\n", early_stop_iterations);
-		return true;
-	}
-
-	return false;
-}
-
-void gmf_model_linear_fit(
-		LinearModel** lm,
+void gmf_model_linear_ovr_fit(
+		LinearModelOVR** lm,
 		const Matrix* X,
 		const Matrix* Y)
 {
-	__check_functions(*lm);
-	__init_X(lm, X);
-	__init_W(lm);
-
-	// set default batch size if one wasn't set (default of 25% original data size)
-	if ((*lm)->params->model_type == BATCH && (*lm)->params->batch_size == 0)
-		(*lm)->params->batch_size = (*lm)->X->n_rows / 4;
-	// set default early_stop_iterations if one wasn't set (default is 10% original iterations)
-	if ((*lm)->params->early_stop_iterations == 0)
-		(*lm)->params->early_stop_iterations = (*lm)->params->n_iterations / 10;
-
-	Matrix* loss_grad = NULL;
-	mat_init(&loss_grad, (*lm)->X->n_columns, 1);
-
-	float initial_loss = 0.0f;
-	float previous_loss = 0.0f;
-	size_t tolerance_counter = 0;
-	bool stop_early = false;
-
-	printf("max iter: %zu\n", (*lm)->params->n_iterations);
-
-	// begin training
-	switch((*lm)->params->model_type)
+	// iterate over different class pairs, filter
+	// the correct data, convert to [0, 1] and fit a regular linear model
+	
+	size_t* filtered_idx = NULL;
+	for (size_t model = 0; model < (*lm)->n_models; ++model)
 	{
-		case CLASSIC:
-			#include "./model_types/linear_model_classic.c"
-			break;
-		case BATCH:
-			#include "./model_types/linear_model_batch.c"
-			break;
-		case STOCHASTIC:
-			#include "./model_types/linear_model_stochastic.c"
-			break;
+		size_t* class_pair = (*lm)->class_pairs[model];
+		float class_pair_f[2] = { (float)class_pair[0], (float)class_pair[1] };
+		Matrix* Y_filtered = mat_filter(Y, &__filter_class, class_pair_f, &filtered_idx);
+		Matrix* X_filtered = mat_subset_idx(X, filtered_idx, Y_filtered->n_rows);
+
+		free(filtered_idx);
+		filtered_idx = NULL;
+
+		for (size_t r = 0; r < Y_filtered->n_rows; ++r)
+		{
+			if (fabsf(mat_at(Y_filtered, r, 0) - class_pair_f[0]) < 0.001f)
+				mat_set(&Y_filtered, r, 0, 0.0f);
+			else
+				mat_set(&Y_filtered, r, 0, 1.0f);
+		}
+
+		gmf_model_linear_fit(&(*lm)->models[model], X_filtered, Y_filtered);
+
+		mat_free(&X_filtered);
+		mat_free(&Y_filtered);
 	}
-
-	// only display this message if early stopping is not disabled
-	if (!stop_early && (*lm)->params->early_stop_iterations < (*lm)->params->n_iterations)
-		printf("WARNING: model may not have converged. Consider increasing iterations or learning rate.\n");
-
-	mat_free(&loss_grad);
-
 }
-
+/*
 Matrix* gmf_model_linear_predict(
 		const LinearModel* lm,
 		const Matrix* X)

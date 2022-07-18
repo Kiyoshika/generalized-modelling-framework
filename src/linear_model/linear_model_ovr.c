@@ -1,4 +1,5 @@
 #include "linear_model.h"
+#include "linear_model_ovr.h"
 #include "matrix.h"
 #include "gmf_util.h"
 
@@ -8,22 +9,25 @@ static void err(const char* msg)
 	exit(-1);
 }
 
-void gmf_model_linear_init_inplace(
-	LinearModel** lm,
-	const LinearModelParams* params)
+static size_t __factorial(size_t n)
 {
-	void* alloc = malloc(sizeof(LinearModel));
-	if (!alloc)
-		err("Couldn't allocate memory for LinearModel.");
-	*lm = alloc;
-	(*lm)->params = params; 
-
-	// by default we'll init X and W to NULL since they aren't set until fit() is called
-	(*lm)->X = NULL;
-	(*lm)->W = NULL;
+	size_t result = n;
+	for (n = result - 1; n > 0; --n)
+		result *= n;
+	return result;
 }
 
-// set default parameters
+static size_t __calculate_required_models(const size_t n_classes)
+{
+	if (n_classes < 2)
+		err("Must have at least two classes to use OVR model.\n");
+	// n choose r
+	// n_classes choose 2
+	// n_classes! / (2*(n_classes - 2)!)
+	return __factorial(n_classes) / (2 * __factorial(n_classes - 2)); 
+}
+
+// set default parameters for OVR
 static void __default_params(LinearModelParams* params)
 {
 	params->n_iterations = 100;
@@ -34,20 +38,99 @@ static void __default_params(LinearModelParams* params)
 	params->batch_size = 0;
 }
 
-LinearModel* gmf_model_linear_init()
+static LinearModelParams* __copy_params(const LinearModelParams* params)
 {
-	LinearModel* lm = NULL;
-	LinearModelParams* params = NULL;
+	void* alloc = malloc(sizeof(LinearModelParams));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModelOVR.");
+	LinearModelParams* p_copy = alloc;
+	p_copy->n_iterations = params->n_iterations;
+	p_copy->learning_rate = params->learning_rate;
+	p_copy->early_stop_threshold = params->early_stop_threshold;
+	p_copy->model_type = params->model_type;
+	p_copy->batch_size = params->batch_size;
+
+	return p_copy;
+}
+
+static void __compute_class_pairs(
+		size_t (**class_pairs)[2], 
+		const size_t n_models,
+		const size_t n_classes)
+{
+	
+
+	size_t model = 0;
+	size_t x = 0, y = 1;
+	while (model < n_models)
+	{
+		(*class_pairs)[model][0] = x;
+		(*class_pairs)[model][1] = y;
+		y++;
+		if (y > n_classes - 1)
+		{
+			x++;
+			y = x + 1;
+		}
+		model++;
+	}
+}
+
+void gmf_model_linear_ovr_init_inplace(
+	LinearModelOVR** lm,
+	const LinearModelParams* params,
+	const size_t n_classes)
+{
+	void* alloc = malloc(sizeof(LinearModelOVR));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModelOVR.");
+	*lm = alloc;
+
+	// calculate total number of models requred given n_classes
+	size_t n_models = __calculate_required_models(n_classes);
+	(*lm)->n_models = n_models;
+
+	// calculate all class combinations
+	alloc = malloc(n_models * sizeof(*(*lm)->class_pairs));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModelOVR.");
+	(*lm)->class_pairs = alloc;
+	__compute_class_pairs(&(*lm)->class_pairs, n_models, n_classes);
+
+	// allocate memory for all linear models
+	alloc = malloc(n_models * sizeof(LinearModel));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModelOVR.");
+	(*lm)->models = alloc;
+
+	// initialize all models with default parameters
+	for (size_t n = 0; n < n_models; ++n)
+	{
+		(*lm)->models[n] = gmf_model_linear_init();
+		(*lm)->models[n]->params = __copy_params(params);
+		(*lm)->models[n]->X = NULL;
+		(*lm)->models[n]->W = NULL;
+	}
+}
+
+LinearModelOVR* gmf_model_linear_ovr_init(const size_t n_classes)
+{
+	LinearModelOVR* lm = NULL;
 	void* alloc = malloc(sizeof(LinearModelParams));
 	if (!alloc)
 		err("Couldn't allocate memory for LinearModeParams.");
-	params = alloc;
+	LinearModelParams* params = alloc;
 	__default_params(params);
-	gmf_model_linear_init_inplace(&lm, params);
+	gmf_model_linear_ovr_init_inplace(&lm, params, n_classes);
+
+	// params are just copied into each model, we can free
+	// the original one since it's not used
+	free(params);
 
 	return lm;
 }
 
+/*
 static void __init_X(
 		LinearModel** lm,
 		const Matrix* X)
@@ -86,7 +169,7 @@ static void __init_W(LinearModel** lm)
 // * activation function
 // * loss function
 // * loss gradient
-static void __check_functions(const LinearModel* lm)
+void __check_functions(const LinearModel* lm)
 {
 	if (!lm->activation)
 		err("LinearModel must have activation function. See gmf_activation_...");
@@ -97,7 +180,7 @@ static void __check_functions(const LinearModel* lm)
 }
 
 // check if loss hasn't really improved for N iterations
-static bool __check_loss_tolerance(
+bool __check_loss_tolerance(
 		const float loss, 
 		const float previous_loss, 
 		const float tolerance,
@@ -197,3 +280,4 @@ void gmf_model_linear_free(
 	free(*lm);
 	*lm = NULL;
 }
+*/

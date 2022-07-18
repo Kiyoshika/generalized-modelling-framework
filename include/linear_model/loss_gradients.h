@@ -21,4 +21,11 @@ void gmf_loss_gradient_squared(
 		const Matrix* X,
 		Matrix** loss_gradient);
 
+// L'(y, yhat) = (yhat - y)x
+void gmf_loss_gradient_cross_entropy(
+		const Matrix* Y,
+		const Matrix* Yhat,
+		const Matrix* X,
+		Matrix** loss_gradient);
+
 #endif

@@ -27,7 +27,6 @@ typedef struct LinearModelOVR
 // initialize new linear model by passing address of (NULL) pointer 
 void gmf_model_linear_ovr_init_inplace(
 	LinearModelOVR** lm,
-	const LinearModelParams* params,
 	const size_t n_classes);
 
 // initalize new linear model and return a pointer

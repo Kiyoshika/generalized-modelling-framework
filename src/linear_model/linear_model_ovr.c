@@ -27,32 +27,6 @@ static size_t __calculate_required_models(const size_t n_classes)
 	return __factorial(n_classes) / (2 * __factorial(n_classes - 2)); 
 }
 
-// set default parameters for OVR
-static void __default_params(LinearModelParams* params)
-{
-	params->n_iterations = 100;
-	params->learning_rate = 0.001f;
-	params->early_stop_threshold = 0.0001f;
-	params->early_stop_iterations = 0;
-	params->model_type = CLASSIC;
-	params->batch_size = 0;
-}
-
-static LinearModelParams* __copy_params(const LinearModelParams* params)
-{
-	void* alloc = malloc(sizeof(LinearModelParams));
-	if (!alloc)
-		err("Couldn't allocate memory for LinearModelOVR.");
-	LinearModelParams* p_copy = alloc;
-	p_copy->n_iterations = params->n_iterations;
-	p_copy->learning_rate = params->learning_rate;
-	p_copy->early_stop_threshold = params->early_stop_threshold;
-	p_copy->model_type = params->model_type;
-	p_copy->batch_size = params->batch_size;
-
-	return p_copy;
-}
-
 static void __compute_class_pairs(
 		size_t (**class_pairs)[2], 
 		const size_t n_models,
@@ -78,7 +52,6 @@ static void __compute_class_pairs(
 
 void gmf_model_linear_ovr_init_inplace(
 	LinearModelOVR** lm,
-	const LinearModelParams* params,
 	const size_t n_classes)
 {
 	void* alloc = malloc(sizeof(LinearModelOVR));
@@ -107,7 +80,6 @@ void gmf_model_linear_ovr_init_inplace(
 	for (size_t n = 0; n < n_models; ++n)
 	{
 		(*lm)->models[n] = gmf_model_linear_init();
-		(*lm)->models[n]->params = __copy_params(params);
 		(*lm)->models[n]->X = NULL;
 		(*lm)->models[n]->W = NULL;
 	}
@@ -116,16 +88,7 @@ void gmf_model_linear_ovr_init_inplace(
 LinearModelOVR* gmf_model_linear_ovr_init(const size_t n_classes)
 {
 	LinearModelOVR* lm = NULL;
-	void* alloc = malloc(sizeof(LinearModelParams));
-	if (!alloc)
-		err("Couldn't allocate memory for LinearModeParams.");
-	LinearModelParams* params = alloc;
-	__default_params(params);
-	gmf_model_linear_ovr_init_inplace(&lm, params, n_classes);
-
-	// params are just copied into each model, we can free
-	// the original one since it's not used
-	free(params);
+	gmf_model_linear_ovr_init_inplace(&lm, n_classes);
 
 	return lm;
 }
@@ -267,17 +230,21 @@ void gmf_model_linear_predict_inplace(
 	mat_multiply_inplace(X, lm->W, Yhat);
 	lm->activation(Yhat);
 }
+*/
 
-void gmf_model_linear_free(
-	LinearModel** lm)
+void gmf_model_linear_ovr_free(
+	LinearModelOVR** lm)
 {
-	if ((*lm)->X)
-		mat_free(&(*lm)->X);
-	if ((*lm)->W)
-		mat_free(&(*lm)->W);
-	free((*lm)->params);
-	(*lm)->params = NULL;
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		gmf_model_linear_free(&(*lm)->models[m]);
+
+	free((*lm)->models);
+	(*lm)->models = NULL;
+
+	free((*lm)->class_pairs);
+	(*lm)->class_pairs = NULL;
+
 	free(*lm);
 	*lm = NULL;
+
 }
-*/

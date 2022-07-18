@@ -5,7 +5,6 @@
 
 # IN PROGRESS - OVR models (one vs rest)
 Got basic allocator working. Need to:
-* implement deallocator
 * implement filtering matrix for filtering classes
 	* maybe add this as a feature in CMatrix?
 * translate class pairs to 0,1 when evaluating activation & loss and back when making predictions

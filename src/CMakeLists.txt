@@ -12,7 +12,7 @@ add_library(linear_model
 	linear_model/loss_gradients.c)
 target_include_directories(linear_model PUBLIC ${GMF_SOURCE_DIR}/include/linear_model)
 target_include_directories(linear_model PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
-target_link_libraries(linear_model gmf_util matrix)
+target_link_libraries(linear_model m gmf_util matrix)
 
 # LINEAR MODEL (OVR)
 add_library(linear_model_ovr

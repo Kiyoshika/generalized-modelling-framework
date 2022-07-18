@@ -9,5 +9,5 @@ int main()
 
 	printf("%d\n", ovr_model->models[3]->params->n_iterations);
 
-	//gmf_model_linear_ovr_free(&ovr_model);
+	gmf_model_linear_ovr_free(&ovr_model);
 }

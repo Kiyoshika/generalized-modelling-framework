@@ -17,3 +17,19 @@ void gmf_loss_gradient_squared(
 	mat_free(&Y_temp);
 	mat_free(&X_t);
 }
+
+void gmf_loss_gradient_cross_entropy(
+		const Matrix* Y,
+		const Matrix* Yhat,
+		const Matrix* X,
+		Matrix** loss_gradient)
+{
+	// compute (yhat - y)x element-wise and multiply by X
+	Matrix* Yhat_temp = mat_copy(Yhat);
+	mat_subtract_e(&Yhat_temp, Y);
+	Matrix* X_t = mat_transpose(X);
+	mat_multiply_inplace(X_t, Yhat_temp, loss_gradient);
+	mat_divide_s(loss_gradient, X->n_rows);
+	mat_free(&Yhat_temp);
+	mat_free(&X_t);
+}

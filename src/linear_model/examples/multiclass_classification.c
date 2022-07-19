@@ -26,13 +26,10 @@ int main()
 	// create OVR model with 3 classes
 	LinearModelOVR* ovr_model = gmf_model_linear_ovr_init(3);
 
-	// manually set activation/loss/gradient (need to finish this in API)
-	for (size_t m = 0; m < ovr_model->n_models; ++m)
-	{
-		ovr_model->models[m]->activation = &gmf_activation_sigmoid;
-		ovr_model->models[m]->loss = &gmf_loss_cross_entropy;
-		ovr_model->models[m]->loss_gradient = &gmf_loss_gradient_cross_entropy;
-	}
+	// set activation/loss/gradient
+	gmf_model_linear_ovr_set_activation(&ovr_model, &gmf_activation_sigmoid);
+	gmf_model_linear_ovr_set_loss(&ovr_model, &gmf_loss_cross_entropy);
+	gmf_model_linear_ovr_set_loss_gradient(&ovr_model, &gmf_loss_gradient_cross_entropy);
 
 	// set n_iterations parameter for all submodels
 	// note you can do this manually for each model with ovr_model->models[m]->params->... = ...

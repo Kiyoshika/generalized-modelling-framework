@@ -24,7 +24,7 @@ void gmf_model_linear_init_inplace(
 }
 
 // set default parameters
-void __default_params(LinearModelParams* params)
+static void __default_params(LinearModelParams* params)
 {
 	params->n_iterations = 100;
 	params->learning_rate = 0.001f;
@@ -86,7 +86,7 @@ static void __init_W(LinearModel** lm)
 // * activation function
 // * loss function
 // * loss gradient
-void __check_functions(const LinearModel* lm)
+static void __check_functions(const LinearModel* lm)
 {
 	if (!lm->activation)
 		err("LinearModel must have activation function. See gmf_activation_...");
@@ -97,7 +97,7 @@ void __check_functions(const LinearModel* lm)
 }
 
 // check if loss hasn't really improved for N iterations
-bool __check_loss_tolerance(
+static bool __check_loss_tolerance(
 		const float loss, 
 		const float previous_loss, 
 		const float tolerance,

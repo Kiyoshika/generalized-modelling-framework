@@ -59,6 +59,7 @@ void gmf_model_linear_ovr_init_inplace(
 	if (!alloc)
 		err("Couldn't allocate memory for LinearModelOVR.");
 	*lm = alloc;
+	(*lm)->n_classes = n_classes;
 
 	// calculate total number of models requred given n_classes
 	size_t n_models = __calculate_required_models(n_classes);
@@ -132,26 +133,106 @@ void gmf_model_linear_ovr_fit(
 		mat_free(&Y_filtered);
 	}
 }
-/*
-Matrix* gmf_model_linear_predict(
-		const LinearModel* lm,
+
+static float __set_classes(float x, float* args)
+{
+	if (x < 0.5f)
+		return args[0];
+	return args[1];
+}
+
+Matrix* gmf_model_linear_ovr_predict(
+		const LinearModelOVR* lm,
 		const Matrix* X)
 {
-	Matrix* Yhat= mat_multiply(X, lm->W);
-	lm->activation(&Yhat);
+
+	Matrix* predicted_labels = NULL;
+	mat_init(&predicted_labels, lm->n_models, X->n_rows);
+
+	for (size_t model = 0; model < lm->n_models; ++model)
+	{
+		Matrix* Yhat = mat_multiply(X, lm->models[model]->W);
+		float class_pairs[2] = { (float)lm->class_pairs[model][0], (float)lm->class_pairs[model][1] };
+		mat_apply(&Yhat, &__set_classes, class_pairs);
+		for (size_t r = 0; r < Yhat->n_rows; ++r)
+			mat_set(&predicted_labels, model, r, mat_at(Yhat, r, 0));
+		mat_free(&Yhat);
+	}
+
+	Matrix* Yhat = NULL;
+	mat_init(&Yhat, X->n_rows, 1);
+
+	void* alloc = calloc(lm->n_classes, sizeof(float));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModelOVR predictions.");
+	float* class_lookup_table = alloc;
+	for (size_t r = 0; r < X->n_rows; ++r)
+	{
+		// reset lookup table
+		for (size_t i = 0; i < lm->n_classes; ++i)
+			class_lookup_table[i] = 0.0f;
+
+		for (size_t m = 0; m < lm->n_models; ++m)
+			class_lookup_table[(size_t)mat_at(predicted_labels, m, r)] += 1.0f;
+
+		float frequent_class = -1.0f;
+		for (size_t c = 0; c < lm->n_classes; ++c)
+			if (class_lookup_table[c] > class_lookup_table[(size_t)frequent_class])
+				frequent_class = (float)c;
+
+		mat_set(&Yhat, r, 0, frequent_class);
+	}
+
+	// CLEANUP
+	mat_free(&predicted_labels);
+	free(class_lookup_table);
 	
 	return Yhat;
 }
 
-void gmf_model_linear_predict_inplace(
-		const LinearModel* lm,
+void gmf_model_linear_ovr_predict_inplace(
+		const LinearModelOVR* lm,
 		const Matrix* X,
 		Matrix** Yhat)
 {
-	mat_multiply_inplace(X, lm->W, Yhat);
-	lm->activation(Yhat);
+	Matrix* predicted_labels = NULL;
+	mat_init(&predicted_labels, lm->n_models, X->n_rows);
+
+	for (size_t model = 0; model < lm->n_models; ++model)
+	{
+		Matrix* Yhat_temp = mat_multiply(X, lm->models[model]->W);
+		float class_pairs[2] = { (float)lm->class_pairs[model][0], (float)lm->class_pairs[model][1] };
+		mat_apply(&Yhat_temp, &__set_classes, class_pairs);
+		for (size_t r = 0; r < Yhat_temp->n_rows; ++r)
+			mat_set(&predicted_labels, model, r, mat_at(Yhat_temp, r, 0));
+		mat_free(&Yhat_temp);
+	}
+
+	void* alloc = calloc(lm->n_classes, sizeof(float));
+	if (!alloc)
+		err("Couldn't allocate memory for LinearModelOVR predictions.");
+	float* class_lookup_table = alloc;
+	for (size_t r = 0; r < X->n_rows; ++r)
+	{
+		// reset lookup table
+		for (size_t i = 0; i < lm->n_classes; ++i)
+			class_lookup_table[i] = 0.0f;
+
+		for (size_t m = 0; m < lm->n_models; ++m)
+			class_lookup_table[(size_t)mat_at(predicted_labels, m, r)] += 1.0f;
+
+		float frequent_class = -1.0f;
+		for (size_t c = 0; c < lm->n_classes; ++c)
+			if (class_lookup_table[c] > class_lookup_table[(size_t)frequent_class])
+				frequent_class = (float)c;
+
+		mat_set(Yhat, r, 0, frequent_class);
+	}
+
+	// CLEANUP
+	mat_free(&predicted_labels);
+	free(class_lookup_table);
 }
-*/
 
 void gmf_model_linear_ovr_free(
 	LinearModelOVR** lm)
@@ -168,4 +249,52 @@ void gmf_model_linear_ovr_free(
 	free(*lm);
 	*lm = NULL;
 
+}
+
+void gmf_model_linear_ovr_set_iterations(
+		LinearModelOVR** lm,
+		size_t n_iterations)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->params->n_iterations = n_iterations;
+}
+
+void gmf_model_linear_ovr_set_learning_rate(
+		LinearModelOVR** lm,
+		float learning_rate)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->params->learning_rate = learning_rate;
+}
+
+void gmf_model_linear_ovr_set_early_stop_threshold(
+		LinearModelOVR** lm,
+		float early_stop_threshold)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->params->early_stop_threshold = early_stop_threshold;
+}
+
+void gmf_model_linear_ovr_set_early_stop_iterations(
+		LinearModelOVR** lm,
+		size_t early_stop_iterations)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->params->early_stop_iterations = early_stop_iterations;
+}
+
+void gmf_model_linear_ovr_set_model_type(
+		LinearModelOVR** lm,
+		LinearModelType model_type)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->params->model_type = model_type;
+}
+
+void gmf_model_linear_ovr_set_batch_size(
+		LinearModelOVR** lm,
+		size_t batch_size)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->params->batch_size = batch_size;
 }

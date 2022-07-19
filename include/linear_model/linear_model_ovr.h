@@ -12,15 +12,14 @@
 #include "gmf_util.h"
 #include "linear_model.h"
 
-// forward declarations
+// forward declaration
 typedef struct Matrix Matrix;
-typedef struct LinearModel LinearModel;
-typedef struct LinearModelParams LinearModelParams;
 
 typedef struct LinearModelOVR
 {
 	LinearModel** models; // OVR is a collection of models with different paired labels
 	size_t n_models;
+	size_t n_classes;
 	size_t (*class_pairs)[2]; // pairs of [0, 1], [0, 2], [1, 2] etc. class labels per linear model
 } LinearModelOVR;
 
@@ -57,4 +56,33 @@ void gmf_model_linear_ovr_predict_inplace(
 void gmf_model_linear_ovr_free(
 	LinearModelOVR** lm);
 
+// set n_iterations parameter for all submodels in OVR model
+void gmf_model_linear_ovr_set_iterations(
+		LinearModelOVR** lm,
+		size_t n_iterations);
+
+// set learning_rate parameter for all submodels in OVR model
+void gmf_model_linear_ovr_set_learning_rate(
+		LinearModelOVR** lm,
+		float learning_rate);
+
+// set early_stop_threshold parameter for all submodels in OVR model
+void gmf_model_linear_ovr_set_early_stop_threshold(
+		LinearModelOVR** lm,
+		float early_stop_threshold);
+
+// set early_stop_iterations parameter for all submodels in OVR model
+void gmf_model_linear_ovr_set_early_stop_iterations(
+		LinearModelOVR** lm,
+		size_t early_stop_iterations);
+
+// set model_type parameter for all submodels in OVR model
+void gmf_model_linear_ovr_set_model_type(
+		LinearModelOVR** lm,
+		LinearModelType model_type);
+
+// set batch_size parameter for all submodels in OVR model
+void gmf_model_linear_ovr_set_batch_size(
+		LinearModelOVR** lm,
+		size_t batch_size);
 #endif

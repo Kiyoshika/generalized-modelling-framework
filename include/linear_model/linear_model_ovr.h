@@ -85,4 +85,19 @@ void gmf_model_linear_ovr_set_model_type(
 void gmf_model_linear_ovr_set_batch_size(
 		LinearModelOVR** lm,
 		size_t batch_size);
+
+// set activation function for all submodels in OVR model
+void gmf_model_linear_ovr_set_activation(
+		LinearModelOVR** lm,
+		void (*activation)(Matrix**));
+
+// set loss function for all submodels in OVR model
+void gmf_model_linear_ovr_set_loss(
+		LinearModelOVR** lm,
+		float (*loss)(const Matrix*, const Matrix*));
+
+// set loss gradient functions for all submodels in OVR model
+void gmf_model_linear_ovr_set_loss_gradient(
+		LinearModelOVR** lm,
+		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, Matrix**));
 #endif

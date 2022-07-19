@@ -298,3 +298,27 @@ void gmf_model_linear_ovr_set_batch_size(
 	for (size_t m = 0; m < (*lm)->n_models; ++m)
 		(*lm)->models[m]->params->batch_size = batch_size;
 }
+
+void gmf_model_linear_ovr_set_activation(
+		LinearModelOVR** lm,
+		void (*activation)(Matrix**))
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->activation = activation;
+}
+
+void gmf_model_linear_ovr_set_loss(
+		LinearModelOVR** lm,
+		float (*loss)(const Matrix*, const Matrix*))
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->loss = loss;
+}
+
+void gmf_model_linear_ovr_set_loss_gradient(
+		LinearModelOVR** lm,
+		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, Matrix**))
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->loss_gradient = loss_gradient;
+}

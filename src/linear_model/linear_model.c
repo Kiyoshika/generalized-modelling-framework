@@ -32,6 +32,8 @@ static void __default_params(LinearModelParams* params)
 	params->early_stop_iterations = 0;
 	params->model_type = CLASSIC;
 	params->batch_size = 0;
+	params->class_weights = NULL;
+	params->class_pair = NULL;
 }
 
 LinearModel* gmf_model_linear_init()
@@ -192,6 +194,16 @@ void gmf_model_linear_free(
 		mat_free(&(*lm)->X);
 	if ((*lm)->W)
 		mat_free(&(*lm)->W);
+	if ((*lm)->params->class_weights)
+	{
+		free((*lm)->params->class_weights);
+		(*lm)->params->class_weights = NULL;
+	}
+	if ((*lm)->params->class_pair)
+	{
+		free((*lm)->params->class_pair);
+		(*lm)->params->class_pair = NULL;
+	}
 	free((*lm)->params);
 	(*lm)->params = NULL;
 	free(*lm);

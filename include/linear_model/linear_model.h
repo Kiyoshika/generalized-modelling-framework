@@ -29,6 +29,8 @@ typedef struct LinearModelParams
 	size_t early_stop_iterations;
 	LinearModelType model_type; // type of optimization
 	size_t batch_size;
+	float* class_weights;
+	size_t* class_pair;
 } LinearModelParams;
 
 typedef struct LinearModel
@@ -38,7 +40,7 @@ typedef struct LinearModel
 	Matrix* W; // weights (coefficients of the model) - set during fit()
 	void (*activation)(Matrix**);
 	float (*loss)(const Matrix*, const Matrix*); 
-	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, Matrix**);
+	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const size_t*, const float*, Matrix**);
 } LinearModel;
 
 // initialize new linear model by passing address of (NULL) pointer 

@@ -1,6 +1,9 @@
 #ifndef LOSS_GRADIENTS_H
 #define LOSS_GRADIENTS_H
 
+#include <stdint.h>
+#include <stddef.h>
+
 /*
  * NOTE: we are given Y and Yhat (both of shape (r, 1))
  * and our input data X. Typically the loss is finally
@@ -19,6 +22,8 @@ void gmf_loss_gradient_squared(
 		const Matrix* Y,
 		const Matrix* Yhat,
 		const Matrix* X,
+		const size_t* class_pair,
+		const float* class_weights,
 		Matrix** loss_gradient);
 
 // L'(y, yhat) = (yhat - y)x
@@ -26,6 +31,8 @@ void gmf_loss_gradient_cross_entropy(
 		const Matrix* Y,
 		const Matrix* Yhat,
 		const Matrix* X,
+		const size_t* class_pair,
+		const float* class_weights,
 		Matrix** loss_gradient);
 
 #endif

@@ -38,7 +38,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	}	
 
 
-	(*lm)->loss_gradient(Y, Yhat, (*lm)->X, &loss_grad);
+	(*lm)->loss_gradient(Y, Yhat, (*lm)->X, (*lm)->params->class_pair, (*lm)->params->class_weights, &loss_grad);
 	mat_free(&Yhat);
 
 	// update weights

@@ -15,7 +15,7 @@ int main()
 	// generate fake multiclasses [0, 1, 2]
 	for (size_t r = 0; r < Y->n_rows; ++r)
 	{
-		if (mat_at(Y, r, 0) > 0.3f && mat_at(Y, r, 0) < 0.6f)
+		if (mat_at(Y, r, 0) > 0.1f && mat_at(Y, r, 0) < 0.6f)
 			mat_set(&Y, r, 0, 1.0f);
 		else if (mat_at(Y, r, 0) >= 0.6f) // yes, I know >= with floats isn't reliable, but this is a demonstration
 			mat_set(&Y, r, 0, 2.0f);
@@ -24,7 +24,9 @@ int main()
 	}
 
 	// create OVR model with 3 classes
-	LinearModelOVR* ovr_model = gmf_model_linear_ovr_init(3);
+	// passing NULL to class weights will compute them automatically
+	// otherwise you can pass an array of floats to control class weights
+	LinearModelOVR* ovr_model = gmf_model_linear_ovr_init(3, NULL);
 
 	// set activation/loss/gradient
 	gmf_model_linear_ovr_set_activation(&ovr_model, &gmf_activation_sigmoid);
@@ -47,6 +49,10 @@ int main()
 	Matrix* preds = gmf_model_linear_ovr_predict(ovr_model, X_test); 
 	printf("\n\nPREDICTIONS:\n");
 	mat_print(preds);
+
+	printf("\n\nCalculated class weights:\n");
+	for (size_t i = 0; i < 3; ++i)
+		printf("%f\n", ovr_model->class_weights[i]);
 
 	gmf_model_linear_ovr_free(&ovr_model);
 	mat_free(&X);

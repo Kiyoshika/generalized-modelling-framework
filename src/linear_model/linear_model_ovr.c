@@ -53,7 +53,8 @@ static void __compute_class_pairs(
 
 void gmf_model_linear_ovr_init_inplace(
 	LinearModelOVR** lm,
-	const size_t n_classes)
+	const size_t n_classes,
+	const float* class_weights)
 {
 	void* alloc = malloc(sizeof(LinearModelOVR));
 	if (!alloc)
@@ -64,6 +65,20 @@ void gmf_model_linear_ovr_init_inplace(
 	// calculate total number of models requred given n_classes
 	size_t n_models = __calculate_required_models(n_classes);
 	(*lm)->n_models = n_models;
+
+	if (!class_weights)
+		(*lm)->class_weights = NULL; // this is calculated at fit() time
+	else
+	{
+		// copy contents of class weights to not take ownership of pointer
+		alloc = calloc(n_classes, sizeof(float));
+		if (!alloc)
+			err("Couldn't allocate memory for LinearModelOVR.");
+		(*lm)->class_weights = alloc;
+
+		for (size_t i = 0; i < n_classes; ++i)
+			(*lm)->class_weights[i] = class_weights[i];
+	}
 
 	// calculate all class combinations
 	alloc = malloc(n_models * sizeof(*(*lm)->class_pairs));
@@ -87,10 +102,12 @@ void gmf_model_linear_ovr_init_inplace(
 	}
 }
 
-LinearModelOVR* gmf_model_linear_ovr_init(const size_t n_classes)
+LinearModelOVR* gmf_model_linear_ovr_init(
+		const size_t n_classes,
+		const float* class_weights)
 {
 	LinearModelOVR* lm = NULL;
-	gmf_model_linear_ovr_init_inplace(&lm, n_classes);
+	gmf_model_linear_ovr_init_inplace(&lm, n_classes, class_weights);
 
 	return lm;
 }
@@ -100,11 +117,47 @@ static bool __filter_class(const Vector* row, float* args)
 	return fabsf(vec_at(row, 0) - args[0]) < 0.001f || fabsf(vec_at(row, 0) - args[1]) < 0.001f;
 }
 
+static float* __compute_class_weights(const Matrix* Y, const size_t n_classes)
+{
+	size_t* class_counts = NULL;
+	void* alloc = calloc(n_classes, sizeof(size_t));
+	if (!alloc)
+		err("Couldn't allocate memory for computing class weights.");
+	class_counts = alloc;
+
+	for (size_t r = 0; r < Y->n_rows; ++r)
+		class_counts[(size_t)mat_at(Y, r, 0)]++;
+
+	float* class_weights = NULL;
+	alloc = calloc(n_classes, sizeof(float));
+	if (!alloc)
+		err("Couldn't allocate memory for computing class weights.");
+	class_weights = alloc;
+
+	// class weight = N / (n_classes * class_count)
+	for (size_t c = 0; c < n_classes; ++c)
+		class_weights[c] = (float)Y->n_rows / (float)(n_classes * class_counts[c]);
+
+	return class_weights;
+}
+
 void gmf_model_linear_ovr_fit(
 		LinearModelOVR** lm,
 		const Matrix* X,
 		const Matrix* Y)
 {
+	
+	// compute class weights if they aren't specified
+	if ((*lm)->class_weights == NULL)
+		(*lm)->class_weights = __compute_class_weights(Y, (*lm)->n_classes);
+
+	// models will share the same pointer to save memory
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+	{
+		(*lm)->models[m]->params->class_weights = (*lm)->class_weights;
+		(*lm)->models[m]->params->class_pair = (*lm)->class_pairs[m];
+	}
+
 	// iterate over different class pairs, filter
 	// the correct data, convert to [0, 1] and fit a regular linear model
 	
@@ -246,6 +299,9 @@ void gmf_model_linear_ovr_free(
 	free((*lm)->class_pairs);
 	(*lm)->class_pairs = NULL;
 
+	free((*lm)->class_weights);
+	(*lm)->class_weights = NULL;
+
 	free(*lm);
 	*lm = NULL;
 
@@ -317,7 +373,7 @@ void gmf_model_linear_ovr_set_loss(
 
 void gmf_model_linear_ovr_set_loss_gradient(
 		LinearModelOVR** lm,
-		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, Matrix**))
+		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const size_t*, const float*, Matrix**))
 {
 	for (size_t m = 0; m < (*lm)->n_models; ++m)
 		(*lm)->models[m]->loss_gradient = loss_gradient;

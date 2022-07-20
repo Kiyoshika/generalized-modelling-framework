@@ -21,15 +21,19 @@ typedef struct LinearModelOVR
 	size_t n_models;
 	size_t n_classes;
 	size_t (*class_pairs)[2]; // pairs of [0, 1], [0, 2], [1, 2] etc. class labels per linear model
+	float* class_weights; // weights for each class in order [0, 1, 2, ...]. Higher the value, more importance is given.
 } LinearModelOVR;
 
 // initialize new linear model by passing address of (NULL) pointer 
 void gmf_model_linear_ovr_init_inplace(
 	LinearModelOVR** lm,
-	const size_t n_classes);
+	const size_t n_classes,
+	const float* class_weights);
 
 // initalize new linear model and return a pointer
-LinearModelOVR* gmf_model_linear_ovr_init(size_t n_classes);
+LinearModelOVR* gmf_model_linear_ovr_init(
+		const size_t n_classes,
+		const float* class_weights);
 
 // train model given actuals: X - (r, c) matrix. Y - (r, 1) matrix.
 // NOTE: a bias term is automatically added to X and stored internally so it becomes an (r+1, c) matrix.
@@ -99,5 +103,5 @@ void gmf_model_linear_ovr_set_loss(
 // set loss gradient functions for all submodels in OVR model
 void gmf_model_linear_ovr_set_loss_gradient(
 		LinearModelOVR** lm,
-		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, Matrix**));
+		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const size_t*, const float*, Matrix**));
 #endif

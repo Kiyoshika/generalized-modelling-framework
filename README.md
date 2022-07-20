@@ -30,6 +30,7 @@ This is in-progress documentation as I develop the library.
 	* [Activation Functions](#activation-functions)
 	* [Loss Functions](#loss-functions)
 	* [Parameters](#parameters)
+	* [Class Weights](#class-weights)
 	* [Examples](#examples)
 
 ## Namespace Structure
@@ -67,6 +68,8 @@ The OVR (one-vs-rest) model is a wrapper around the classic model defined as `f 
 OVR introduces a couple additional members:
 * `n_models` - the total number of submodels equal to `c choose 2` where `c` is the number of classes
 * `models` - an array of pointers to `LinearModel` accessed by `ovr_model->models[i]->...`
+
+OVR also supports adjusting class weights as it's a classification-focused optimizer. See [Class Weights](#class-weights) for more.
 
 There are other members but not necessarily useful to the user. See [linear_model_ovr.h](include/linear_model/linear_model_ovr.h) for more details.
 
@@ -153,6 +156,26 @@ for (size_t m = 0; m < lm->n_models; ++m)
 
 // using built-in setters
 gmf_model_linear_ovr_set_[param_name](&lm, [value]);
+```
+
+### Class Weights
+OVR models support adjusting class weights. You can either manually specify weights or have them calculated automatically.
+
+The automatic calculation for class weights is `N / (n_classes * class_size)` where
+* `N` is the total number of data points
+* `n_classes` is the total number of classes
+* `class_size` is the total number of a particular class (e.g., 0, 1, 2, etc.)
+
+```c
+// create OVR model with 3 classes {0, 1, 2}
+// passing NULL to class weights will compute them automatically
+// otherwise you can pass an array of floats to control class weights
+LinearModelOVR* ovr_model = gmf_model_linear_ovr_init(3, NULL);
+
+// to force class weights to be uniform, you can make them the same value
+// note that class weights do not need to add up to one
+float class_weights[3] = {1.0f, 1.0f, 1.0f};
+LinearModelOVR* uniform_weights = gmf_model_linear_ovr_init(3, class_weights);
 ```
 
 ### Examples

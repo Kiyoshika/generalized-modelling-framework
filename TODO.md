@@ -1,5 +1,4 @@
 * add absolute loss, hinge loss, huber loss
-* add class weights on OVR model
 * introduce vectorized regression models for `f : R^w -> R^s` multidimensional output
 	* softmax could be introduced for multiclassification in this case
 * rework linear models to not store a copy of X and instead rely on user using `gmf_util_add_bias`
@@ -10,8 +9,3 @@
 * metrics like RMSE, MAE, confusion matrix, etc.
 * add global install target
 * rename final library output to `libgmf.a`
-
-IN PROGRESS:
-Started class weights. Todo:
-* add class weights as a parameter in linear models and pass from OVR models
-* add class weights as an argument to loss gradient functions

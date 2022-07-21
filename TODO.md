@@ -6,3 +6,6 @@
 * metrics like RMSE, MAE, confusion matrix, etc.
 * add global install target
 * rename final library output to `libgmf.a`
+
+IN PROGRESS
+* added regularization functions & gradients, need to add them into the models & losses

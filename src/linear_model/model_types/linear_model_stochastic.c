@@ -2,7 +2,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 {
 	// sample single point (stochastic optimization)
 	size_t sampled_idx[1];
-	Matrix* X_sample = mat_sample((*lm)->X, 1, false, sampled_idx);
+	Matrix* X_sample = mat_sample(X, 1, false, sampled_idx);
 	Matrix* Y_sample = mat_subset(Y, sampled_idx[0], sampled_idx[0], 0, 0);
 
 	Matrix* Yhat = NULL;
@@ -46,7 +46,6 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 
 		printf("Loss at iteration %zu: %f\n", iter, loss);
 	}	
-
 
 	(*lm)->loss_gradient(Y_sample, Yhat, X_sample, (*lm)->params->class_pair, (*lm)->params->class_weights, &loss_grad);
 	mat_free(&X_sample);

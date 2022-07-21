@@ -51,8 +51,7 @@ int main()
 			mat_set(&Y, r, 0, 1.0f);
 	}
 
-	Matrix* X_test = mat_copy(X);
-	gmf_util_add_bias(&X_test);
+	gmf_util_add_bias(&X);
 
 	gmf_model_linear_fit(&lm, X, Y);
 	
@@ -60,12 +59,11 @@ int main()
 	mat_print(Y);
 
 	printf("\n\nPREDICTED:\n");
-	Matrix* preds = gmf_model_linear_predict(lm, X_test);
+	Matrix* preds = gmf_model_linear_predict(lm, X);
 	mat_print(preds);
 
 	gmf_model_linear_free(&lm);
 	mat_free(&X);
-	mat_free(&X_test);
 	mat_free(&Y);
 	mat_free(&preds);
 

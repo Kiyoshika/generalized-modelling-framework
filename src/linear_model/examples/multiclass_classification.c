@@ -37,16 +37,14 @@ int main()
 	// note you can do this manually for each model with ovr_model->models[m]->params->... = ...
 	gmf_model_linear_ovr_set_iterations(&ovr_model, 100000);
 
+	gmf_util_add_bias(&X);
 	gmf_model_linear_ovr_fit(&ovr_model, X, Y);
-
-	Matrix* X_test = mat_copy(X);
-	gmf_util_add_bias(&X_test);
 
 	printf("\n\nACTUALS:\n");
 	mat_print(Y);
 
 	// ovr_model->X already has bias term so we don't have to do it manually
-	Matrix* preds = gmf_model_linear_ovr_predict(ovr_model, X_test); 
+	Matrix* preds = gmf_model_linear_ovr_predict(ovr_model, X); 
 	printf("\n\nPREDICTIONS:\n");
 	mat_print(preds);
 
@@ -56,7 +54,6 @@ int main()
 
 	gmf_model_linear_ovr_free(&ovr_model);
 	mat_free(&X);
-	mat_free(&X_test);
 	mat_free(&Y);
 	mat_free(&preds);
 }

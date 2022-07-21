@@ -42,8 +42,9 @@ int main()
 	mat_init(&Y, 10, 1);
 	mat_random(&Y, 2.0f, 15.0f);
 
-	Matrix* X_test = mat_copy(X);
-	gmf_util_add_bias(&X_test);
+	// it's recommended to add a bias term if one isn't present already
+	// this adds a column vector of 1s to represent the bias
+	gmf_util_add_bias(&X);
 
 	gmf_model_linear_fit(&lm, X, Y);
 	
@@ -51,7 +52,7 @@ int main()
 	mat_print(Y);
 
 	printf("\n\nCLASSIC PREDICTED:\n");
-	Matrix* preds = gmf_model_linear_predict(lm, X_test);
+	Matrix* preds = gmf_model_linear_predict(lm, X);
 	mat_print(preds);
 
 	lm->params->model_type = BATCH;
@@ -59,20 +60,19 @@ int main()
 	gmf_model_linear_fit(&lm, X, Y);
 	printf("\n\nBATCH PREDICTED\n");
 	// preds is already allocated, so we can use inplace here
-	gmf_model_linear_predict_inplace(lm, X_test, &preds);
+	gmf_model_linear_predict_inplace(lm, X, &preds);
 	mat_print(preds);
 
 	lm->params->model_type = STOCHASTIC;
 	gmf_model_linear_fit(&lm, X, Y);
 	printf("\n\nSTOCHASTIC PREDICTED:\n");
 	// preds is already allocated, so we can use inplace here
-	gmf_model_linear_predict_inplace(lm, X_test, &preds); 
+	gmf_model_linear_predict_inplace(lm, X, &preds); 
 	mat_print(preds);
 
 
 	gmf_model_linear_free(&lm);
 	mat_free(&X);
-	mat_free(&X_test);
 	mat_free(&Y);
 	mat_free(&preds);
 

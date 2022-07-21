@@ -1,10 +1,10 @@
 for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 {
 	Matrix* Yhat = NULL;
-	mat_init(&Yhat, (*lm)->X->n_rows, 1);
+	mat_init(&Yhat, X->n_rows, 1);
 
 	// get linear combination of data and weights
-	mat_multiply_inplace((*lm)->X, (*lm)->W, &Yhat);
+	mat_multiply_inplace(X, (*lm)->W, &Yhat);
 	
 	// apply activation
 	(*lm)->activation(&Yhat);
@@ -38,7 +38,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	}	
 
 
-	(*lm)->loss_gradient(Y, Yhat, (*lm)->X, (*lm)->params->class_pair, (*lm)->params->class_weights, &loss_grad);
+	(*lm)->loss_gradient(Y, Yhat, X, (*lm)->params->class_pair, (*lm)->params->class_weights, &loss_grad);
 	mat_free(&Yhat);
 
 	// update weights

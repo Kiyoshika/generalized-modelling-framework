@@ -26,6 +26,7 @@ This is in-progress documentation as I develop the library.
 **CONTENTS**
 * [Namespace Structure](#namespace-structure)
 * [Linear Models](#linear-models)
+ 	* [Bias Term](#bias-term)
 	* [Memory Management](#memory-management)
 	* [Activation Functions](#activation-functions)
 	* [Loss Functions](#loss-functions)
@@ -72,6 +73,13 @@ OVR introduces a couple additional members:
 OVR also supports adjusting class weights as it's a classification-focused optimizer. See [Class Weights](#class-weights) for more.
 
 There are other members but not necessarily useful to the user. See [linear_model_ovr.h](include/linear_model/linear_model_ovr.h) for more details.
+
+### Bias Term
+It's recommended for your input data to have a bias term, otherwise the model will be forced to pass through the origin `(0, 0, ..., 0)`.
+
+To add a bias term, you can use `gmf_util_add_bias(&X)` where `X` is a `Matrix*`. See examples for specific usage of this.
+
+Note that this will invalidate the previous pointer to `X`, so be cautious if you have any other pointers to `X` prior to adding the bias term.
 
 ### Memory Management
 All model initializers allocate memory internally and return a pointer. You can use it as follows:

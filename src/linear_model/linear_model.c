@@ -18,8 +18,7 @@ void gmf_model_linear_init_inplace(
 	*lm = alloc;
 	(*lm)->params = params; 
 
-	// by default we'll init X and W to NULL since they aren't set until fit() is called
-	(*lm)->X = NULL;
+	// by default we'll init W to NULL since they aren't set until fit() is called
 	(*lm)->W = NULL;
 }
 
@@ -50,28 +49,7 @@ LinearModel* gmf_model_linear_init()
 	return lm;
 }
 
-static void __init_X(
-		LinearModel** lm,
-		const Matrix* X)
-{
-	// if fit is called multiple times, need to check
-	// if X is already initialized
-	if ((*lm)->X)
-		mat_free(&(*lm)->X);
-
-	// create a copy of X and add the bias term
-	Matrix* X_cpy = NULL;
-	mat_init(&X_cpy, X->n_rows, X->n_columns + 1);
-	for (size_t r = 0; r < X_cpy->n_rows; ++r)
-	{
-		mat_set(&X_cpy, r, 0, 1.0f);
-		for (size_t c = 1; c < X_cpy->n_columns; ++c)
-			mat_set(&X_cpy, r, c, mat_at(X, r, c - 1));
-	}
-	(*lm)->X = X_cpy;
-}
-
-static void __init_W(LinearModel** lm)
+static void __init_W(LinearModel** lm, const Matrix* X)
 {
 	// if fit is called multiple times, need to check
 	// if W is already initialized
@@ -80,7 +58,7 @@ static void __init_W(LinearModel** lm)
 
 	// initialize random weights in [-1, 1]
 	(*lm)->W = NULL; 
-	mat_init(&(*lm)->W, (*lm)->X->n_columns, 1);
+	mat_init(&(*lm)->W, X->n_columns, 1);
 	mat_random(&(*lm)->W, -1.0f, 1.0f);
 }
 
@@ -126,18 +104,17 @@ void gmf_model_linear_fit(
 		const Matrix* Y)
 {
 	__check_functions(*lm);
-	__init_X(lm, X);
-	__init_W(lm);
+	__init_W(lm, X);
 
 	// set default batch size if one wasn't set (default of 25% original data size)
 	if ((*lm)->params->model_type == BATCH && (*lm)->params->batch_size == 0)
-		(*lm)->params->batch_size = (*lm)->X->n_rows / 4;
+		(*lm)->params->batch_size = X->n_rows / 4;
 	// set default early_stop_iterations if one wasn't set (default is 10% original iterations)
 	if ((*lm)->params->early_stop_iterations == 0)
 		(*lm)->params->early_stop_iterations = (*lm)->params->n_iterations / 10;
 
 	Matrix* loss_grad = NULL;
-	mat_init(&loss_grad, (*lm)->X->n_columns, 1);
+	mat_init(&loss_grad, X->n_columns, 1);
 
 	float initial_loss = 0.0f;
 	float previous_loss = 0.0f;
@@ -190,8 +167,6 @@ void gmf_model_linear_predict_inplace(
 void gmf_model_linear_free(
 	LinearModel** lm)
 {
-	if ((*lm)->X)
-		mat_free(&(*lm)->X);
 	if ((*lm)->W)
 		mat_free(&(*lm)->W);
 	if ((*lm)->params->class_weights)

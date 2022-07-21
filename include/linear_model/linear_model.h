@@ -36,7 +36,6 @@ typedef struct LinearModelParams
 typedef struct LinearModel
 {
 	LinearModelParams* params; 
-	Matrix* X; // internal X grabbed by fit() to add the bias term automatically
 	Matrix* W; // weights (coefficients of the model) - set during fit()
 	void (*activation)(Matrix**);
 	float (*loss)(const Matrix*, const Matrix*); 

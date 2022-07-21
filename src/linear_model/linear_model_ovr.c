@@ -97,7 +97,6 @@ void gmf_model_linear_ovr_init_inplace(
 	for (size_t n = 0; n < n_models; ++n)
 	{
 		(*lm)->models[n] = gmf_model_linear_init();
-		(*lm)->models[n]->X = NULL;
 		(*lm)->models[n]->W = NULL;
 	}
 }

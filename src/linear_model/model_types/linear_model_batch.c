@@ -5,7 +5,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	if (!s_alloc)
 		err("Couldn't allocate memory when trying to sample data.");
 	size_t* sampled_idx = s_alloc;
-	Matrix* X_sample = mat_sample((*lm)->X, (*lm)->params->batch_size, false, sampled_idx);
+	Matrix* X_sample = mat_sample(X, (*lm)->params->batch_size, false, sampled_idx);
 	Matrix* Y_sample = NULL;
 	mat_init(&Y_sample, (*lm)->params->batch_size, 1);
 	for (size_t r = 0; r < (*lm)->params->batch_size; ++r)

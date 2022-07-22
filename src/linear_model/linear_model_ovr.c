@@ -364,7 +364,7 @@ void gmf_model_linear_ovr_set_activation(
 
 void gmf_model_linear_ovr_set_loss(
 		LinearModelOVR** lm,
-		float (*loss)(const Matrix*, const Matrix*))
+		float (*loss)(const Matrix*, const Matrix*, const LinearModel*))
 {
 	for (size_t m = 0; m < (*lm)->n_models; ++m)
 		(*lm)->models[m]->loss = loss;
@@ -372,8 +372,33 @@ void gmf_model_linear_ovr_set_loss(
 
 void gmf_model_linear_ovr_set_loss_gradient(
 		LinearModelOVR** lm,
-		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const size_t*, const float*, Matrix**))
+		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const LinearModel*, Matrix**))
 {
 	for (size_t m = 0; m < (*lm)->n_models; ++m)
 		(*lm)->models[m]->loss_gradient = loss_gradient;
+}
+
+void gmf_model_linear_ovr_set_regularization(
+		LinearModelOVR** lm,
+		float (*regularization)(const float*, const Matrix*))
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->regularization = regularization;
+}
+
+void gmf_model_linear_ovr_set_regularization_gradient(
+		LinearModelOVR** lm,
+		float (*regularization_gradient)(const float*, const Matrix*))
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		(*lm)->models[m]->regularization_gradient = regularization_gradient;
+}
+
+void gmf_model_linear_ovr_set_regularization_params(
+		LinearModelOVR** lm,
+		const float* regularization_params,
+		const size_t n)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		gmf_model_linear_set_regularization_params(&(*lm)->models[m], regularization_params, n);
 }

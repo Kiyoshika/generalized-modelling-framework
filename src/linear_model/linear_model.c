@@ -17,6 +17,8 @@ void gmf_model_linear_init_inplace(
 		err("Couldn't allocate memory for LinearModel.");
 	*lm = alloc;
 	(*lm)->params = params; 
+	(*lm)->regularization = NULL;
+	(*lm)->regularization_gradient = NULL;
 
 	// by default we'll init W to NULL since they aren't set until fit() is called
 	(*lm)->W = NULL;
@@ -33,6 +35,7 @@ static void __default_params(LinearModelParams* params)
 	params->batch_size = 0;
 	params->class_weights = NULL;
 	params->class_pair = NULL;
+	params->regularization_params = NULL;
 }
 
 LinearModel* gmf_model_linear_init()
@@ -74,15 +77,19 @@ static void __check_functions(const LinearModel* lm)
 		err("LinearModel must have loss function. See gmf_loss_...");
 	if (!lm->loss_gradient)
 		err("LinearModel must have loss gradient. See gmf_loss_gradient...");
+	if (lm->regularization && !lm->regularization_gradient)
+		err("LinearModel missing gradient function for regularization.");
+	if (lm->regularization_gradient && !lm->regularization)
+		err("LinearModel missing regularization function while regularization gradient is specified.");
 }
 
 // check if loss hasn't really improved for N iterations
 static bool __check_loss_tolerance(
-		const float loss, 
-		const float previous_loss, 
-		const float tolerance,
-		size_t* tolerance_counter,
-		const size_t early_stop_iterations)
+	const float loss, 
+	const float previous_loss, 
+	const float tolerance,
+	size_t* tolerance_counter,
+	const size_t early_stop_iterations)
 {
 	if (fabsf(loss - previous_loss) < tolerance)
 		(*tolerance_counter)++;
@@ -99,9 +106,9 @@ static bool __check_loss_tolerance(
 }
 
 void gmf_model_linear_fit(
-		LinearModel** lm,
-		const Matrix* X,
-		const Matrix* Y)
+	LinearModel** lm,
+	const Matrix* X,
+	const Matrix* Y)
 {
 	__check_functions(*lm);
 	__init_W(lm, X);
@@ -112,6 +119,9 @@ void gmf_model_linear_fit(
 	// set default early_stop_iterations if one wasn't set (default is 10% original iterations)
 	if ((*lm)->params->early_stop_iterations == 0)
 		(*lm)->params->early_stop_iterations = (*lm)->params->n_iterations / 10;
+	// make sure regularization parameters are provided if regularization is used
+	if ((*lm)->regularization && !(*lm)->params->regularization_params)
+		err("LinearModel regularization function missing parameters. Please use gmf_model_..._set_regularization_params().");
 
 	Matrix* loss_grad = NULL;
 	mat_init(&loss_grad, X->n_columns, 1);
@@ -146,8 +156,8 @@ void gmf_model_linear_fit(
 }
 
 Matrix* gmf_model_linear_predict(
-		const LinearModel* lm,
-		const Matrix* X)
+	const LinearModel* lm,
+	const Matrix* X)
 {
 	Matrix* Yhat= mat_multiply(X, lm->W);
 	lm->activation(&Yhat);
@@ -156,8 +166,8 @@ Matrix* gmf_model_linear_predict(
 }
 
 void gmf_model_linear_predict_inplace(
-		const LinearModel* lm,
-		const Matrix* X,
+	const LinearModel* lm,
+	const Matrix* X,
 		Matrix** Yhat)
 {
 	mat_multiply_inplace(X, lm->W, Yhat);
@@ -179,8 +189,103 @@ void gmf_model_linear_free(
 		free((*lm)->params->class_pair);
 		(*lm)->params->class_pair = NULL;
 	}
+	if ((*lm)->params->regularization_params)
+	{
+		free((*lm)->params->regularization_params);
+		(*lm)->params->regularization_params = NULL;
+	}
 	free((*lm)->params);
 	(*lm)->params = NULL;
 	free(*lm);
 	*lm = NULL;
+}
+
+void gmf_model_linear_set_iterations(
+	LinearModel** lm,
+	const size_t n_iterations)
+{
+	(*lm)->params->n_iterations = n_iterations;
+}
+
+void gmf_model_linear_set_learning_rate(
+	LinearModel** lm,
+	const float learning_rate)
+{
+	(*lm)->params->learning_rate = learning_rate;
+}
+
+void gmf_model_linear_set_early_stop_threshold(
+	LinearModel** lm,
+	const float early_stop_threshold)
+{
+	(*lm)->params->early_stop_threshold = early_stop_threshold;
+}
+
+void gmf_model_linear_set_early_stop_iterations(
+	LinearModel** lm,
+	const size_t early_stop_iterations)
+{
+	(*lm)->params->early_stop_iterations = early_stop_iterations;
+}
+
+void gmf_model_linear_set_model_type(
+	LinearModel** lm,
+	const LinearModelType model_type)
+{
+	(*lm)->params->model_type = model_type;
+}
+
+void gmf_model_linear_set_batch_size(
+	LinearModel** lm,
+	const size_t batch_size)
+{
+	(*lm)->params->batch_size = batch_size;
+}
+
+void gmf_model_linear_set_activation(
+	LinearModel** lm,
+	void (*activation)(Matrix**))
+{
+	(*lm)->activation = activation;
+}
+
+void gmf_model_linear_set_loss(
+	LinearModel** lm,
+	float (*loss)(const Matrix*, const Matrix*, const LinearModel*))
+{
+	(*lm)->loss = loss;
+}
+
+void gmf_model_linear_set_loss_gradient(
+	LinearModel** lm,
+	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*J, const LinearModel*, Matrix**))
+{
+	(*lm)->loss_gradient = loss_gradient;
+}
+
+void gmf_model_linear_set_regularization(
+	LinearModel** lm,
+	float (*regularization)(const float*, const Matrix*))
+{
+	(*lm)->regularization = regularization;
+}
+
+void gmf_model_linear_set_regularization_gradient(
+	LinearModel** lm,
+	float (*regularization_gradient)(const float*, const Matrix*))
+{
+	(*lm)->regularization_gradient = regularization_gradient;
+}
+
+void gmf_model_linear_set_regularization_params(
+	LinearModel** lm,
+	const float* regularization_params,
+	const size_t n)
+{
+	void* alloc = calloc(n, sizeof(float));
+	if (!alloc)
+		err("Couldn't allocate memory when setting regularization parameters.");
+	(*lm)->params->regularization_params = alloc;
+	for (size_t i = 0; i < n; ++i)
+		(*lm)->params->regularization_params[i] = regularization_params[i];
 }

@@ -13,6 +13,8 @@
 #include "linear_model.h"
 #include "matrix.h"
 #include "util.h"
+#include "regularization.h"
+#include "regularization_gradient.h"
 
 int main()
 {
@@ -23,13 +25,14 @@ int main()
 	lm->loss_gradient = &gmf_loss_gradient_squared;
 
 	// setup model parameters
-	lm->params->n_iterations = 10000;
-	lm->params->learning_rate = 0.001f;
-	lm->params->model_type = CLASSIC;
+	gmf_model_linear_set_iterations(&lm, 10000);
+	gmf_model_linear_set_learning_rate(&lm, 0.001f);
+	gmf_model_linear_set_model_type(&lm, CLASSIC);
+
 	// by default, early stop will happen after 10% of consecutive n_iterations
 	// has no improvement on loss function. If you want to disable early stopping,
 	// set early_stop_iterations = n_iterations
-	lm->params->early_stop_iterations = lm->params->n_iterations;
+	gmf_model_linear_set_early_stop_iterations(&lm, lm->params->n_iterations);
 
 	// generate fake random data
 	// NOTE: this is complete noise and no meaningful relationships
@@ -55,15 +58,17 @@ int main()
 	Matrix* preds = gmf_model_linear_predict(lm, X);
 	mat_print(preds);
 
-	lm->params->model_type = BATCH;
-	lm->params->batch_size = 5; // by default, batch_size is 25% of original data size
+	gmf_model_linear_set_model_type(&lm, BATCH);
+	gmf_model_linear_set_batch_size(&lm, 5); // by default, batch_size is 25% of original data size
+
 	gmf_model_linear_fit(&lm, X, Y);
 	printf("\n\nBATCH PREDICTED\n");
 	// preds is already allocated, so we can use inplace here
 	gmf_model_linear_predict_inplace(lm, X, &preds);
 	mat_print(preds);
 
-	lm->params->model_type = STOCHASTIC;
+	gmf_model_linear_set_model_type(&lm, STOCHASTIC);
+
 	gmf_model_linear_fit(&lm, X, Y);
 	printf("\n\nSTOCHASTIC PREDICTED:\n");
 	// preds is already allocated, so we can use inplace here

@@ -9,7 +9,9 @@ add_library(linear_model
 	linear_model/linear_model.c
 	linear_model/activations.c
 	linear_model/losses.c
-	linear_model/loss_gradients.c)
+	linear_model/loss_gradients.c
+	linear_model/regularization.c
+	linear_model/regularization_gradient.c)
 target_include_directories(linear_model PUBLIC ${GMF_SOURCE_DIR}/include/linear_model)
 target_include_directories(linear_model PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
 target_link_libraries(linear_model m gmf_util matrix)
@@ -26,6 +28,10 @@ if (${EXAMPLES})
 	add_executable(least_squares linear_model/examples/least_squares.c)
 	target_link_libraries(least_squares linear_model)
 	set_target_properties(least_squares PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
+
+	add_executable(regularization linear_model/examples/regularization.c)
+	target_link_libraries(regularization linear_model)
+	set_target_properties(regularization PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
 
 	add_executable(logistic_regression linear_model/examples/logistic_regression.c)
 	target_link_libraries(logistic_regression linear_model)

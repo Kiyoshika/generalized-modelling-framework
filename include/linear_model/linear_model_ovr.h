@@ -98,10 +98,27 @@ void gmf_model_linear_ovr_set_activation(
 // set loss function for all submodels in OVR model
 void gmf_model_linear_ovr_set_loss(
 		LinearModelOVR** lm,
-		float (*loss)(const Matrix*, const Matrix*));
+		float (*loss)(const Matrix*, const Matrix*, const LinearModel*));
 
-// set loss gradient functions for all submodels in OVR model
+// set loss gradient function for all submodels in OVR model
 void gmf_model_linear_ovr_set_loss_gradient(
 		LinearModelOVR** lm,
-		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const size_t*, const float*, Matrix**));
+		void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const LinearModel*, Matrix**));
+
+// set regularization function for all submodels in OVR model
+void gmf_model_linear_ovr_set_regularization(
+		LinearModelOVR** lm,
+		float (*regularization)(const float*, const Matrix*));
+
+// set regularization gradient function for all submodels in OVR model
+void gmf_model_linear_ovr_set_regularization_gradient(
+		LinearModelOVR** lm,
+		float (*regularization_gradient)(const float*, const Matrix*));
+
+// set regularization parameters for all submodels in OVR model
+void gmf_model_linear_ovr_set_regularization_params(
+		LinearModelOVR** lm,
+		const float* regularization_params,
+		const size_t n);
+
 #endif

@@ -29,6 +29,10 @@ if (${EXAMPLES})
 	target_link_libraries(least_squares linear_model)
 	set_target_properties(least_squares PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
 
+	add_executable(regularization linear_model/examples/regularization.c)
+	target_link_libraries(regularization linear_model)
+	set_target_properties(regularization PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
+
 	add_executable(logistic_regression linear_model/examples/logistic_regression.c)
 	target_link_libraries(logistic_regression linear_model)
 	set_target_properties(logistic_regression PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")

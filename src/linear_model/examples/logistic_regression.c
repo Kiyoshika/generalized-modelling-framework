@@ -18,18 +18,18 @@ int main()
 {
 	// setup model and its functions
 	LinearModel* lm = gmf_model_linear_init();
-	lm->activation = &gmf_activation_sigmoid;
-	lm->loss = &gmf_loss_cross_entropy;
-	lm->loss_gradient = &gmf_loss_gradient_cross_entropy;
+	gmf_model_linear_set_activation(&lm, &gmf_activation_sigmoid);
+	gmf_model_linear_set_loss(&lm, &gmf_loss_cross_entropy);
+	gmf_model_linear_set_loss_gradient(&lm, &gmf_loss_gradient_cross_entropy);
 
 	// setup model parameters
-	lm->params->n_iterations = 10000;
-	lm->params->learning_rate = 0.001f;
-	lm->params->model_type = CLASSIC;
+	gmf_model_linear_set_iterations(&lm, 10000);
+	gmf_model_linear_set_learning_rate(&lm, 0.001f);
+	gmf_model_linear_set_model_type(&lm, CLASSIC);
 	// by default, early stop will happen after 10% of consecutive n_iterations
 	// has no improvement on loss function. If you want to disable early stopping,
 	// set early_stop_iterations = n_iterations
-	lm->params->early_stop_iterations = lm->params->n_iterations;
+	gmf_model_linear_set_early_stop_iterations(&lm, lm->params->n_iterations);
 
 	// generate fake random data
 	// NOTE: this is complete noise and no meaningful relationships

@@ -1,7 +1,7 @@
 #include "regularization_gradient.h"
 #include "matrix.h"
 
-float gmf_regularization_L1(const float* params, const Matrix* W)
+float gmf_regularization_gradient_L1(const float* params, const Matrix* W)
 {
 	Matrix* W_copy = mat_copy(W);
 	float weight_sum = 0.0f;
@@ -12,7 +12,7 @@ float gmf_regularization_L1(const float* params, const Matrix* W)
 	return params[0] * weight_sum;
 }
 
-float gmf_regularization_L2(const float* params, const Matrix* W)
+float gmf_regularization_gradient_L2(const float* params, const Matrix* W)
 {
 	Matrix* W_copy = mat_copy(W);
 	float weight_sum = 0.0f;
@@ -23,7 +23,7 @@ float gmf_regularization_L2(const float* params, const Matrix* W)
 	return params[0] * 2 * weight_sum;
 }
 
-float gmf_regularization_LN(const float* params, const Matrix* W)
+float gmf_regularization_gradient_LN(const float* params, const Matrix* W)
 {
 	Matrix* W_copy = mat_copy(W);
 	float weight_sum = 0.0f;

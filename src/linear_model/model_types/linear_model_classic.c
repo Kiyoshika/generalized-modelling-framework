@@ -10,7 +10,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	(*lm)->activation(&Yhat);
 
 	// compute loss and check early stop criteria
-	float loss = (*lm)->loss(Y, Yhat);
+	float loss = (*lm)->loss(Y, Yhat, *lm);
 	stop_early = __check_loss_tolerance(loss, previous_loss, (*lm)->params->early_stop_threshold, &tolerance_counter, (*lm)->params->early_stop_iterations);
 	if (stop_early)
 	{
@@ -38,7 +38,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	}	
 
 
-	(*lm)->loss_gradient(Y, Yhat, X, (*lm)->params->class_pair, (*lm)->params->class_weights, &loss_grad);
+	(*lm)->loss_gradient(Y, Yhat, X, *lm, &loss_grad);
 	mat_free(&Yhat);
 
 	// update weights

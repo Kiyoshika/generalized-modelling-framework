@@ -31,6 +31,7 @@ typedef struct LinearModelParams
 	size_t batch_size;
 	float* class_weights;
 	size_t* class_pair;
+	float* regularization_params;
 } LinearModelParams;
 
 typedef struct LinearModel
@@ -38,8 +39,10 @@ typedef struct LinearModel
 	LinearModelParams* params; 
 	Matrix* W; // weights (coefficients of the model) - set during fit()
 	void (*activation)(Matrix**);
-	float (*loss)(const Matrix*, const Matrix*); 
-	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const size_t*, const float*, Matrix**);
+	float (*loss)(const Matrix*, const Matrix*, const LinearModel*); 
+	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const LinearModel*, Matrix**);
+	float (*regularization)(const float*, const Matrix*);
+	float (*regularization_gradient)(const float*, const Matrix*);
 } LinearModel;
 
 // initialize new linear model by passing address of (NULL) pointer 
@@ -74,5 +77,66 @@ void gmf_model_linear_predict_inplace(
 // cleanup memory
 void gmf_model_linear_free(
 	LinearModel** lm);
+
+// set n_iterations parameter
+void gmf_model_linear_set_iterations(
+	LinearModel** lm,
+	const size_t n_iterations);
+
+// set learning_rate parameter
+void gmf_model_linear_set_learning_rate(
+	LinearModel** lm,
+	const float learning_rate);
+
+// set early_stop_threshold parameter
+void gmf_model_linear_set_early_stop_threshold(
+	LinearModel** lm,
+	const float early_stop_threshold);
+
+// set early_stop_iterations parameter
+void gmf_model_linear_set_early_stop_iterations(
+	LinearModel** lm,
+	const size_t early_stop_iterations);
+
+// set model_type parameter
+void gmf_model_linear_set_model_type(
+	LinearModel** lm,
+	const LinearModelType model_type);
+
+// set batch_size parameter
+void gmf_model_linear_set_batch_size(
+	LinearModel** lm,
+	const LinearModelType mode_type);
+
+// pass an array of regularization params and store a copy
+void gmf_model_linear_set_regularization_params(
+	LinearModel** lm,
+	const float* regularization_params,
+	const size_t n);
+
+// set activation function
+void gmf_model_linear_set_activation(
+	LinearModel** lm,
+	void (*activation)(Matrix**));
+
+// set loss function
+void gmf_model_linear_set_loss(
+	LinearModel** lm,
+	float (*loss)(const Matrix*, const Matrix*, const LinearModel*));
+
+// set loss gradient function
+void gmf_model_linear_set_loss_gradient(
+	LinearModel** lm,
+	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*J, const LinearModel*, Matrix**));
+
+// set regularization function
+void gmf_model_linear_set_regularization(
+	LinearModel** lm,
+	float (*regularization)(const float*, const Matrix*));
+
+// set regularization gradient function
+void gmf_model_linear_set_regularization_gradient(
+	LinearModel** lm,
+	float (*regularization_gradient)(const float*, const Matrix*));
 
 #endif

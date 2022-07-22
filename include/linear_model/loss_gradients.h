@@ -16,14 +16,14 @@
 
 // formward declaration
 typedef struct Matrix Matrix;
+typedef struct LinearModel LinearModel;
 
 // L'(y, yhat) = 2(y - yhat)x
 void gmf_loss_gradient_squared(
 		const Matrix* Y,
 		const Matrix* Yhat,
 		const Matrix* X,
-		const size_t* class_pair,
-		const float* class_weights,
+		const LinearModel* lm,
 		Matrix** loss_gradient);
 
 // L'(y, yhat) = (yhat - y)x
@@ -31,8 +31,7 @@ void gmf_loss_gradient_cross_entropy(
 		const Matrix* Y,
 		const Matrix* Yhat,
 		const Matrix* X,
-		const size_t* class_pair,
-		const float* class_weights,
+		const LinearModel* lm,
 		Matrix** loss_gradient);
 
 #endif

@@ -32,6 +32,7 @@ This is in-progress documentation as I develop the library.
 	* [Loss Functions](#loss-functions)
 	* [Parameters](#parameters)
 	* [Class Weights](#class-weights)
+	* [Regularization](#regularization)
 	* [Examples](#examples)
 
 ## Namespace Structure
@@ -51,6 +52,8 @@ where `namespace1` and `namespace2` are:
 * `activation` - contains all activation functions used in linear models
 * `loss` - contains all loss functions used in linear models
 * `loss_gradient` - contains all loss function gradients used in linear models
+* `regularization` - contains all regularization functions used in linear models
+* `regularization_gradient` - contains all regularization gradients used in linear models
 
 and `funcs` represents all function names inside those two namespaces. See header files for exact names.
 
@@ -99,16 +102,11 @@ These are the current supported activation functions. You can set an activation 
 ```c
 /* classic model */
 LinearModel* lm = gmf_model_linear_init();
-lm->activation = &gmf_activation_...
+gmf_model_linear_set_activation(&lm, &gmf_activation_...);
 
 /* OVR model */
 LinearModelOVR* lm = gmf_model_linear_ovr_init();
-
-// OPTION 1 - manually set for an individual model
-lm->models[i]->activation = &gmf_activation_... // manually set for an individual submodel
-
-// OPTION 2 - use built-in setters to apply to ALL submodels
-gmf_model_linear_ovr_set_activation(&lm, &gmf_activation_...); // set for ALL submodels
+gmf_model_linear_ovr_set_activation(&lm, &gmf_activation_...);
 ```
 
 * `gmf_activation_identity` - identity activation typically used in continuous regression, `f(x) = x`
@@ -117,19 +115,13 @@ gmf_model_linear_ovr_set_activation(&lm, &gmf_activation_...); // set for ALL su
 ### Loss Functions
 These are the current supported loss functions (and their gradients). You can set a loss function (+ gradient) function as follows:
 ```c
-// classic model
+/* classic model */
 LinearModel* lm = ...
-lm->loss = &gmf_loss_...
-lm->loss_gradient = &gmf_loss_gradient_...
+gmf_model_linear_set_loss(&lm, &gmf_loss_...);
+gmf_model_linear_set_loss_gradient(&lm, &gmf_loss_gradient_...);
 
-// OVR model
+/* OVR model */
 LinearModelOVR* lm = ...
-
-// OPTION 1 - manually set for an individual model
-lm->models[i]->loss = &gmf_loss_...
-lm->models[i]->loss = &gmf_loss_gradient_...
-
-// OPTION 2 - use built-in setters to apply to ALL submodels
 gmf_model_linear_ovr_set_loss(&lm, &gmf_loss_...);
 gmf_model_linear_ovr_set_loss_gradient(&lm, &gmf_loss_gradient_...);
 ```
@@ -148,22 +140,17 @@ Linear models support a set of parameters defined below with their default value
 * `model_type: CLASSIC` - one of `CLASSIC`, `BATCH` or `STOCHASTIC` determining how to optimize the model. `CLASSIC` uses the entire training data each iteration, `BATCH` uses `batch_size` random data points per iteration and `STOCHASTIC` uses a single random data point per iteration.
 * `batch_size: n_rows / 4` - number of random data points to sample each iteration. Only used if `BATCH` is selected for `model_type`. `n_rows` represents the number of rows in the training set.
 
-For classic models, parameters can be set as follows:
+Parameters can be set as follows - they typically follow the same naming convention as the above names.
 ```c
+/* classic model */
 LinearModel* lm = ...
-lm->params->[param_name] = [value];
-```
+gmf_model_linear_set_iterations(&lm, 1000);
+gmf_model_linear_set_learning_rate(&lm, 0.005f);
 
-For OVR models, you can either set a parameter individually per model or use the built-in setters to apply a parameter to all models
-```c
+/* OVR model */
 LinearModelOVR* lm = ...
-
-// individually
-for (size_t m = 0; m < lm->n_models; ++m)
-	lm->models[m]->params->[param_name] = [value];
-
-// using built-in setters
-gmf_model_linear_ovr_set_[param_name](&lm, [value]);
+gmf_model_linear_ovr_set_iterations(&lm, 1000);
+gmf_model_linear_ovr_set_learning_rate(&lm, 0.005f);
 ```
 
 ### Class Weights
@@ -185,6 +172,18 @@ LinearModelOVR* ovr_model = gmf_model_linear_ovr_init(3, NULL);
 float class_weights[3] = {1.0f, 1.0f, 1.0f};
 LinearModelOVR* uniform_weights = gmf_model_linear_ovr_init(3, class_weights);
 ```
+
+### Regularization
+Regularization adds an additional penalty term to the loss function as an attempt to aid overfitting. By default, the library supports L1 to LN regularization, but users can define their own functions if desired.
+
+If using regularization, you must specify:
+* Regularization function `gmf_regularization_...`
+* Regularization gradient `gmf_regularization_gradient_...`
+* Regularization params `float*`
+
+The `params` are values passed to the regularization functions. In the case of L1 & L2 this is just the lambda parameter, so it's a `float[1]` array you'd pass.
+
+For a full example, see [Regularization Example](src/linear_model/examples/regularization.c).
 
 ### Examples
 For examples on usage for linear model, see [Linear Model Examples](src/linear_model/examples)

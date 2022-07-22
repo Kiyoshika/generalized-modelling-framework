@@ -88,7 +88,7 @@ Note that this will invalidate the previous pointer to `X`, so be cautious if yo
 All model initializers allocate memory internally and return a pointer. You can use it as follows:
 ```c
 LinearModel* lm = gmf_model_linear_init();
-LinearModelOVR* ovr = gmf_model_linear_ovr_init();
+LinearModelOVR* ovr = gmf_model_linear_ovr_init(5); // OVR requires to specify # of classes upfront
 ```
 
 You must free the memory using the respective free functions:
@@ -105,7 +105,7 @@ LinearModel* lm = gmf_model_linear_init();
 gmf_model_linear_set_activation(&lm, &gmf_activation_...);
 
 /* OVR model */
-LinearModelOVR* lm = gmf_model_linear_ovr_init();
+LinearModelOVR* lm = gmf_model_linear_ovr_init(5); // OVR requires to specify # of classes upfront
 gmf_model_linear_ovr_set_activation(&lm, &gmf_activation_...);
 ```
 

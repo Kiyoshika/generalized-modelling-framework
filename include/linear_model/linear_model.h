@@ -106,7 +106,7 @@ void gmf_model_linear_set_model_type(
 // set batch_size parameter
 void gmf_model_linear_set_batch_size(
 	LinearModel** lm,
-	const LinearModelType mode_type);
+	const size_t batch_size);
 
 // pass an array of regularization params and store a copy
 void gmf_model_linear_set_regularization_params(

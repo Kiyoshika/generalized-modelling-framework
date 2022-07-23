@@ -179,16 +179,7 @@ void gmf_model_linear_free(
 {
 	if ((*lm)->W)
 		mat_free(&(*lm)->W);
-	if ((*lm)->params->class_weights)
-	{
-		free((*lm)->params->class_weights);
-		(*lm)->params->class_weights = NULL;
-	}
-	if ((*lm)->params->class_pair)
-	{
-		free((*lm)->params->class_pair);
-		(*lm)->params->class_pair = NULL;
-	}
+	
 	if ((*lm)->params->regularization_params)
 	{
 		free((*lm)->params->regularization_params);

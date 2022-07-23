@@ -160,6 +160,8 @@ gmf_model_linear_ovr_set_learning_rate(&lm, 0.005f);
 ### Class Weights
 OVR models support adjusting class weights. You can either manually specify weights or have them calculated automatically.
 
+**WARNING**: You may notice the `LinearModel` struct contains class weights but it is NOT DESIGNED to be used by itself. Class weights areNOT free'd in `LinearModel` and will lead to a memory leak. This is because, as mentioned, OVR models are a wrapper around `LinearModel` and require a pointer to that data - everything is free'd correctly in `gmf_model_linear_ovr_free`.
+
 The automatic calculation for class weights is `N / (n_classes * class_size)` where
 * `N` is the total number of data points
 * `n_classes` is the total number of classes

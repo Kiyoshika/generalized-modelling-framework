@@ -137,6 +137,9 @@ static float* __compute_class_weights(const Matrix* Y, const size_t n_classes)
 	for (size_t c = 0; c < n_classes; ++c)
 		class_weights[c] = (float)Y->n_rows / (float)(n_classes * class_counts[c]);
 
+	free(class_counts);
+	class_counts = NULL;
+
 	return class_weights;
 }
 
@@ -294,7 +297,7 @@ void gmf_model_linear_ovr_free(
 
 	free((*lm)->models);
 	(*lm)->models = NULL;
-
+	
 	free((*lm)->class_pairs);
 	(*lm)->class_pairs = NULL;
 

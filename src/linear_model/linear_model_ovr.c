@@ -146,7 +146,8 @@ static float* __compute_class_weights(const Matrix* Y, const size_t n_classes)
 void gmf_model_linear_ovr_fit(
 		LinearModelOVR** lm,
 		const Matrix* X,
-		const Matrix* Y)
+		const Matrix* Y,
+		const bool verbose)
 {
 	
 	// compute class weights if they aren't specified
@@ -182,7 +183,7 @@ void gmf_model_linear_ovr_fit(
 				mat_set(&Y_filtered, r, 0, 1.0f);
 		}
 
-		gmf_model_linear_fit(&(*lm)->models[model], X_filtered, Y_filtered);
+		gmf_model_linear_fit(&(*lm)->models[model], X_filtered, Y_filtered, verbose);
 
 		mat_free(&X_filtered);
 		mat_free(&Y_filtered);

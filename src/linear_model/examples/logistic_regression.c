@@ -53,7 +53,7 @@ int main()
 
 	gmf_util_add_bias(&X);
 
-	gmf_model_linear_fit(&lm, X, Y);
+	gmf_model_linear_fit(&lm, X, Y, true);
 	
 	printf("\n\nACTUALS:\n");
 	mat_print(Y);

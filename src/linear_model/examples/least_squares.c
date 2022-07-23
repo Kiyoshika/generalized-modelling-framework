@@ -49,7 +49,7 @@ int main()
 	// this adds a column vector of 1s to represent the bias
 	gmf_util_add_bias(&X);
 
-	gmf_model_linear_fit(&lm, X, Y);
+	gmf_model_linear_fit(&lm, X, Y, true);
 	
 	printf("\n\nACTUALS:\n");
 	mat_print(Y);
@@ -61,7 +61,7 @@ int main()
 	gmf_model_linear_set_model_type(&lm, BATCH);
 	gmf_model_linear_set_batch_size(&lm, 5); // by default, batch_size is 25% of original data size
 
-	gmf_model_linear_fit(&lm, X, Y);
+	gmf_model_linear_fit(&lm, X, Y, true);
 	printf("\n\nBATCH PREDICTED\n");
 	// preds is already allocated, so we can use inplace here
 	gmf_model_linear_predict_inplace(lm, X, &preds);
@@ -69,7 +69,7 @@ int main()
 
 	gmf_model_linear_set_model_type(&lm, STOCHASTIC);
 
-	gmf_model_linear_fit(&lm, X, Y);
+	gmf_model_linear_fit(&lm, X, Y, true);
 	printf("\n\nSTOCHASTIC PREDICTED:\n");
 	// preds is already allocated, so we can use inplace here
 	gmf_model_linear_predict_inplace(lm, X, &preds); 

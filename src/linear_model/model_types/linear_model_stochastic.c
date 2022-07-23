@@ -44,7 +44,8 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 			break;
 		}
 
-		printf("Loss at iteration %zu: %f\n", iter, loss);
+		if (verbose)
+			printf("Loss at iteration %zu: %f\n", iter, loss);
 	}	
 
 	(*lm)->loss_gradient(Y_sample, Yhat, X_sample, *lm, &loss_grad);

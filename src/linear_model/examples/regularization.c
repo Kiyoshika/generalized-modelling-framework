@@ -33,7 +33,7 @@ int main()
 	// this adds a column vector of 1s to represent the bias
 	gmf_util_add_bias(&X);
 
-	gmf_model_linear_fit(&lm, X, Y);
+	gmf_model_linear_fit(&lm, X, Y, true);
 	
 	printf("\n\nACTUALS:\n");
 	mat_print(Y);
@@ -48,7 +48,7 @@ int main()
 	gmf_model_linear_set_regularization_gradient(&lm, &gmf_regularization_gradient_L2);
 	gmf_model_linear_set_regularization_params(&lm, reg_params, 1); // declaring we are passing 1 parameter, 0.5f
 
-	gmf_model_linear_fit(&lm, X, Y);
+	gmf_model_linear_fit(&lm, X, Y, true);
 	gmf_model_linear_predict_inplace(lm, X, &preds);
 	printf("\n\nPREDICTED (regularization):\n");
 	mat_print(preds);

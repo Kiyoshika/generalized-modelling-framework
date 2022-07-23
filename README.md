@@ -157,6 +157,15 @@ gmf_model_linear_ovr_set_iterations(&lm, 1000);
 gmf_model_linear_ovr_set_learning_rate(&lm, 0.005f);
 ```
 
+You can also toggle verbosity while training. If verbosity is true, it will display the loss function throughout training. You can toggle this in the third parameter in the fit functions:
+
+```c
+gmf_model_linear_fit(X, Y, true); // or false
+gmf_model_linear_ovr_fit(X, Y, true); // or false
+```
+
+If verbosity is off, it will still print warnings if the loss function hasn't "converged" and a note if the convergence stopped early.
+
 ### Class Weights
 OVR models support adjusting class weights. You can either manually specify weights or have them calculated automatically.
 

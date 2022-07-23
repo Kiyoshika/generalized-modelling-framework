@@ -38,7 +38,7 @@ int main()
 	gmf_model_linear_ovr_set_iterations(&ovr_model, 100000);
 
 	gmf_util_add_bias(&X);
-	gmf_model_linear_ovr_fit(&ovr_model, X, Y);
+	gmf_model_linear_ovr_fit(&ovr_model, X, Y, true);
 
 	printf("\n\nACTUALS:\n");
 	mat_print(Y);

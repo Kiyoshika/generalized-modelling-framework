@@ -59,7 +59,8 @@ LinearModel* gmf_model_linear_init();
 void gmf_model_linear_fit(
 	LinearModel** lm,
 	const Matrix* X,
-	const Matrix* Y);
+	const Matrix* Y,
+	const bool verbose);
 
 // Take data X and make predictions using linear model.
 // Predictions are allocated and returned as new matrix.

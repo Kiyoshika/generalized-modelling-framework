@@ -108,7 +108,8 @@ static bool __check_loss_tolerance(
 void gmf_model_linear_fit(
 	LinearModel** lm,
 	const Matrix* X,
-	const Matrix* Y)
+	const Matrix* Y,
+	const bool verbose)
 {
 	__check_functions(*lm);
 	__init_W(lm, X);
@@ -130,8 +131,6 @@ void gmf_model_linear_fit(
 	float previous_loss = 0.0f;
 	size_t tolerance_counter = 0;
 	bool stop_early = false;
-
-	printf("max iter: %zu\n", (*lm)->params->n_iterations);
 
 	// begin training
 	switch((*lm)->params->model_type)

@@ -41,7 +41,8 @@ LinearModelOVR* gmf_model_linear_ovr_init(
 void gmf_model_linear_ovr_fit(
 	LinearModelOVR** lm,
 	const Matrix* X,
-	const Matrix* Y);
+	const Matrix* Y,
+	const bool verbose);
 
 // Take data X and make predictions using linear model.
 // Predictions are allocated and returned as new matrix.

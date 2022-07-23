@@ -15,6 +15,7 @@
 #include "util.h"
 #include "regularization.h"
 #include "regularization_gradient.h"
+#include "metrics.h"
 
 int main()
 {
@@ -57,6 +58,7 @@ int main()
 	printf("\n\nCLASSIC PREDICTED:\n");
 	Matrix* preds = gmf_model_linear_predict(lm, X);
 	mat_print(preds);
+	printf("CLASSIC MAE: %f\n", gmf_metrics_mae(Y, preds, NULL));
 
 	gmf_model_linear_set_model_type(&lm, BATCH);
 	gmf_model_linear_set_batch_size(&lm, 5); // by default, batch_size is 25% of original data size
@@ -66,6 +68,7 @@ int main()
 	// preds is already allocated, so we can use inplace here
 	gmf_model_linear_predict_inplace(lm, X, &preds);
 	mat_print(preds);
+	printf("BATCH MAE: %f\n", gmf_metrics_mae(Y, preds, NULL));
 
 	gmf_model_linear_set_model_type(&lm, STOCHASTIC);
 
@@ -74,6 +77,7 @@ int main()
 	// preds is already allocated, so we can use inplace here
 	gmf_model_linear_predict_inplace(lm, X, &preds); 
 	mat_print(preds);
+	printf("STOCHASTIC MAE: %f\n", gmf_metrics_mae(Y, preds, NULL));
 
 
 	gmf_model_linear_free(&lm);

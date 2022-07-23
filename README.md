@@ -34,6 +34,7 @@ This is in-progress documentation as I develop the library.
 	* [Class Weights](#class-weights)
 	* [Regularization](#regularization)
 	* [Examples](#examples)
+* [Metrics](#metrics)
 
 ## Namespace Structure
 Since C doesn't have namespaces, functions are organized into "namespaces" with underscore prefixes.
@@ -48,7 +49,7 @@ where `namespace1` and `namespace2` are:
 	* `linear_ovr` - one-vs-rest linear model for multi classification
 	* `linear_vec` - vectorized linear models for multi-dimensional output (coming soon)
 * `util` - contains utility functions
-* `metrics` - contains metrics to evaluate models (coming soon)
+* `metrics` - contains metrics to evaluate models
 * `activation` - contains all activation functions used in linear models
 * `loss` - contains all loss functions used in linear models
 * `loss_gradient` - contains all loss function gradients used in linear models
@@ -199,6 +200,22 @@ If using regularization, you must specify:
 The `params` are values passed to the regularization functions. In the case of L1 & L2 this is just the lambda parameter, so it's a `float[1]` array you'd pass.
 
 For a full example, see [Regularization Example](src/linear_model/examples/regularization.c).
+
+### Metrics
+There are a few built-in metrics for classification and regression tasks.
+
+Each metrics function takes two `Matrix*` arguments for the actuals and predicted. There is an additional `void*` parameter for any additional parameters that would need to be passed for the metric to use. Currently only the confusion matrix requires this to determine the # of classes.
+
+Below are the current built-in metrics:
+
+* `gmf_metrics_mae` - mean absolute error, f(y, yhat) = mean(|y - yhat|)
+	* requires no additional parameters
+* `gmf_metrics_mse` - mean squared error, f(y, yhat) = mean((y - yhat)^2)
+	* requires no additional parameters
+* `gmf_metrics_confusion_matrix` - prints a confusion matrix to the console and returns weighted f1 score.
+	* requires a `size_t*` parameter specifying the # of classes 
+
+All linear model examples contain examples of both mean aboslute error and confusion matrix. See next section.
 
 ### Examples
 For examples on usage for linear model, see [Linear Model Examples](src/linear_model/examples)

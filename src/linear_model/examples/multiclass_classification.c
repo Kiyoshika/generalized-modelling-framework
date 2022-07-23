@@ -44,7 +44,6 @@ int main()
 	printf("\n\nACTUALS:\n");
 	mat_print(Y);
 
-	// ovr_model->X already has bias term so we don't have to do it manually
 	Matrix* preds = gmf_model_linear_ovr_predict(ovr_model, X); 
 	printf("\n\nPREDICTIONS:\n");
 	mat_print(preds);

@@ -4,6 +4,12 @@ target_include_directories(util PUBLIC ${GMF_SOURCE_DIR}/include)
 target_include_directories(util PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
 target_link_libraries(gmf_util matrix)
 
+# METRICS
+add_library(metrics metrics.c)
+target_include_directories(metrics PUBLIC ${GMF_SOURCE_DIR}/include)
+target_include_directories(metrics PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
+target_link_libraries(metrics matrix)
+
 # LINEAR MODEL
 add_library(linear_model 
 	linear_model/linear_model.c
@@ -26,18 +32,18 @@ target_link_libraries(linear_model_ovr linear_model gmf_util matrix)
 # examples for linear model
 if (${EXAMPLES})
 	add_executable(least_squares linear_model/examples/least_squares.c)
-	target_link_libraries(least_squares linear_model)
+	target_link_libraries(least_squares linear_model metrics)
 	set_target_properties(least_squares PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
 
 	add_executable(regularization linear_model/examples/regularization.c)
-	target_link_libraries(regularization linear_model)
+	target_link_libraries(regularization linear_model metrics)
 	set_target_properties(regularization PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
 
 	add_executable(logistic_regression linear_model/examples/logistic_regression.c)
-	target_link_libraries(logistic_regression linear_model)
+	target_link_libraries(logistic_regression linear_model metrics)
 	set_target_properties(logistic_regression PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
 
 	add_executable(multiclass_classification linear_model/examples/multiclass_classification.c)
-	target_link_libraries(multiclass_classification linear_model_ovr)
+	target_link_libraries(multiclass_classification linear_model_ovr metrics)
 	set_target_properties(multiclass_classification PROPERTIES RUNTIME_OUTPUT_DIRECTORY "examples/linear_model")
 endif()

@@ -1,5 +1,6 @@
 #include "linear_model_ovr.h"
 #include "matrix.h"
+#include "metrics.h"
 #include <stdio.h>
 
 int main()
@@ -51,6 +52,9 @@ int main()
 	printf("\n\nCalculated class weights:\n");
 	for (size_t i = 0; i < 3; ++i)
 		printf("%f\n", ovr_model->class_weights[i]);
+
+	float weighted_f1 = gmf_metrics_confusion_matrix(Y, preds, &ovr_model->n_classes);
+	printf("\nWeighted F1: %f\n", weighted_f1);
 
 	gmf_model_linear_ovr_free(&ovr_model);
 	mat_free(&X);

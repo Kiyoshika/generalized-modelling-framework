@@ -26,6 +26,9 @@ float gmf_metrics_mse(
 // TP / (TP + 0.5(FP + FN)) weighted by the presence of each class
 //
 // a size_t is passed to params to represent the # of classes
-float gmf_metrics_confusion_matrix(const Matrix* Y, const Matrix* Yhat);
+float gmf_metrics_confusion_matrix(
+		const Matrix* Y, 
+		const Matrix* Yhat,
+		void* params);
 
 #endif

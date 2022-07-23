@@ -4,6 +4,7 @@
 #include "util.h"
 #include "regularization.h"
 #include "regularization_gradient.h"
+#include "metrics.h"
 
 int main()
 {
@@ -41,6 +42,7 @@ int main()
 	printf("\n\nPREDICTED (no regularization):\n");
 	Matrix* preds = gmf_model_linear_predict(lm, X);
 	mat_print(preds);
+	printf("\nMean Absolute Error: %f\n", gmf_metrics_mae(Y, preds, NULL));
 
 	// add L2 regularization with lambda = 0.5 
 	float reg_params[1] = {0.5f};
@@ -52,6 +54,7 @@ int main()
 	gmf_model_linear_predict_inplace(lm, X, &preds);
 	printf("\n\nPREDICTED (regularization):\n");
 	mat_print(preds);
+	printf("\nMean Absolute Error: %f\n", gmf_metrics_mae(Y, preds, NULL));
 
 	gmf_model_linear_free(&lm);
 	mat_free(&X);

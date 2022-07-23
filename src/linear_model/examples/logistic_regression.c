@@ -13,6 +13,7 @@
 #include "linear_model.h"
 #include "matrix.h"
 #include "util.h"
+#include "metrics.h"
 
 int main()
 {
@@ -61,6 +62,15 @@ int main()
 	printf("\n\nPREDICTED:\n");
 	Matrix* preds = gmf_model_linear_predict(lm, X);
 	mat_print(preds);
+
+	// convert predictions to hard 0 & 1 for confusion matrix
+	for (size_t i = 0; i < preds->n_rows; ++i)
+		mat_set(&preds, i, 0, mat_at(preds, i, 0) > 0.5f ? 1.0f : 0.0f);
+
+	size_t n_classes = 2; // passing this to confusion matrix
+	float weighted_f1 = gmf_metrics_confusion_matrix(Y, preds, &n_classes);
+	printf("\nWeighted F1: %f\n", weighted_f1);
+
 
 	gmf_model_linear_free(&lm);
 	mat_free(&X);

@@ -18,7 +18,26 @@ If you want to compile all examples, pass the `-DEXAMPLES=ON` to CMake, otherwis
 * `cmake ..` or `cmake -DEXAMPLES=ON ..`
 * `make`
 
-This will generate a `libgmf.a` static library. At the moment I have no global install targets but will add later.
+This will generate a libgmf.a static library you can link to other projects.
+
+# Including in Other Projects
+This will guide you on how to include this library directly in your other CMake projects if you don't want to compile separately and link.
+
+This assumes you have a very barebones CMake setup with a `CMakeLists.txt`
+
+1. Create a folder to store external dependencies (e.g., `ext`) and use `git submodule add https://github.com/Kiyoshika/generalized-modelling-framework.git`
+2. To fetch dependencies, use `git submodule update --init --recursive` - this will fetch the dependent submodules GMF uses
+3. In your root CMakeLists.txt you can do the following to link the library & headers to your target
+```cmake
+# add GMF to your build
+add_subdirectory(ext/generalized-modelling-framework)
+
+# this now assumes you have a target "mytarget"
+target_link_libraries(mytarget gmf)
+target_include_directories(mytarget PUBLIC ${GMF_SOURCE_DIR}/include)
+```
+
+Afterwards, you should be able to use headers such as `#include "linear_models.h"` for example.
 
 # Documentation (In Progress)
 This is in-progress documentation as I develop the library.

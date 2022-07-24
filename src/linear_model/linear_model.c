@@ -36,6 +36,8 @@ static void __default_params(LinearModelParams* params)
 	params->class_weights = NULL;
 	params->class_pair = NULL;
 	params->regularization_params = NULL;
+	params->huber_delta = 1.0f;
+	params->sigmoid_threshold = 0.5f;
 }
 
 LinearModel* gmf_model_linear_init()
@@ -158,8 +160,8 @@ Matrix* gmf_model_linear_predict(
 	const LinearModel* lm,
 	const Matrix* X)
 {
-	Matrix* Yhat= mat_multiply(X, lm->W);
-	lm->activation(&Yhat);
+	Matrix* Yhat = mat_multiply(X, lm->W);
+	lm->activation(&Yhat, lm);
 	
 	return Yhat;
 }
@@ -170,7 +172,7 @@ void gmf_model_linear_predict_inplace(
 		Matrix** Yhat)
 {
 	mat_multiply_inplace(X, lm->W, Yhat);
-	lm->activation(Yhat);
+	lm->activation(Yhat, lm);
 }
 
 void gmf_model_linear_free(
@@ -234,7 +236,7 @@ void gmf_model_linear_set_batch_size(
 
 void gmf_model_linear_set_activation(
 	LinearModel** lm,
-	void (*activation)(Matrix**))
+	void (*activation)(Matrix**, const LinearModel*))
 {
 	(*lm)->activation = activation;
 }
@@ -278,4 +280,18 @@ void gmf_model_linear_set_regularization_params(
 	(*lm)->params->regularization_params = alloc;
 	for (size_t i = 0; i < n; ++i)
 		(*lm)->params->regularization_params[i] = regularization_params[i];
+}
+
+void gmf_model_linear_set_huber_delta(
+		LinearModel** lm,
+		const float huber_delta)
+{
+	(*lm)->params->huber_delta = huber_delta;
+}
+
+void gmf_model_linear_set_sigmoid_threshold(
+		LinearModel** lm,
+		const float sigmoid_threshold)
+{
+	(*lm)->params->sigmoid_threshold = sigmoid_threshold;
 }

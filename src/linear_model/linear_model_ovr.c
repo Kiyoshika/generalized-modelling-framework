@@ -192,7 +192,7 @@ void gmf_model_linear_ovr_fit(
 
 static float __set_classes(float x, float* args)
 {
-	if (x < 0.5f)
+	if (x < args[2])
 		return args[0];
 	return args[1];
 }
@@ -207,8 +207,12 @@ Matrix* gmf_model_linear_ovr_predict(
 
 	for (size_t model = 0; model < lm->n_models; ++model)
 	{
-		Matrix* Yhat = mat_multiply(X, lm->models[model]->W);
-		float class_pairs[2] = { (float)lm->class_pairs[model][0], (float)lm->class_pairs[model][1] };
+		Matrix* Yhat = gmf_model_linear_predict(lm->models[model], X); 
+		float class_pairs[3] = { 
+			(float)lm->class_pairs[model][0], 
+			(float)lm->class_pairs[model][1], 
+			lm->models[model]->params->sigmoid_threshold 
+		};
 		mat_apply(&Yhat, &__set_classes, class_pairs);
 		for (size_t r = 0; r < Yhat->n_rows; ++r)
 			mat_set(&predicted_labels, model, r, mat_at(Yhat, r, 0));
@@ -360,7 +364,7 @@ void gmf_model_linear_ovr_set_batch_size(
 
 void gmf_model_linear_ovr_set_activation(
 		LinearModelOVR** lm,
-		void (*activation)(Matrix**))
+		void (*activation)(Matrix**, const LinearModel*))
 {
 	for (size_t m = 0; m < (*lm)->n_models; ++m)
 		(*lm)->models[m]->activation = activation;
@@ -405,4 +409,20 @@ void gmf_model_linear_ovr_set_regularization_params(
 {
 	for (size_t m = 0; m < (*lm)->n_models; ++m)
 		gmf_model_linear_set_regularization_params(&(*lm)->models[m], regularization_params, n);
+}
+
+void gmf_model_linear_ovr_set_huber_delta(
+		LinearModelOVR** lm,
+		const float huber_delta)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		gmf_model_linear_set_huber_delta(&(*lm)->models[m], huber_delta);
+}
+
+void gmf_model_linear_ovr_set_sigmoid_threshold(
+		LinearModelOVR** lm,
+		const float sigmoid_threshold)
+{
+	for (size_t m = 0; m < (*lm)->n_models; ++m)
+		gmf_model_linear_set_sigmoid_threshold(&(*lm)->models[m], sigmoid_threshold);
 }

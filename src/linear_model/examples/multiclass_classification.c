@@ -1,7 +1,5 @@
-#include "linear_model_ovr.h"
-#include "matrix.h"
-#include "metrics.h"
 #include <stdio.h>
+#include "linear_models.h"
 
 int main()
 {
@@ -30,7 +28,7 @@ int main()
 	LinearModelOVR* ovr_model = gmf_model_linear_ovr_init(3, NULL);
 
 	// set activation/loss/gradient
-	gmf_model_linear_ovr_set_activation(&ovr_model, &gmf_activation_sigmoid);
+	gmf_model_linear_ovr_set_activation(&ovr_model, &gmf_activation_sigmoid_hard);
 	gmf_model_linear_ovr_set_loss(&ovr_model, &gmf_loss_cross_entropy);
 	gmf_model_linear_ovr_set_loss_gradient(&ovr_model, &gmf_loss_gradient_cross_entropy);
 

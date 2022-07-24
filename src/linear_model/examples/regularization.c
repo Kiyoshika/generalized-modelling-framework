@@ -1,10 +1,5 @@
 #include <stdio.h>
-#include "linear_model.h"
-#include "matrix.h"
-#include "util.h"
-#include "regularization.h"
-#include "regularization_gradient.h"
-#include "metrics.h"
+#include "linear_models.h"
 
 int main()
 {

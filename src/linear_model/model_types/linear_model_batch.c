@@ -21,7 +21,7 @@ for (size_t iter = 0; iter < (*lm)->params->n_iterations; ++iter)
 	mat_multiply_inplace(X_sample, (*lm)->W, &Yhat);
 	
 	// apply activation
-	(*lm)->activation(&Yhat);
+	(*lm)->activation(&Yhat, *lm);
 
 	// compute loss and check early stop criteria
 	float loss = (*lm)->loss(Y_sample, Yhat, *lm);

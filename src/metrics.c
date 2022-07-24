@@ -63,11 +63,11 @@ static float __single_class_F1(
 		float y = mat_at(Y, r, 0);
 		float yhat = mat_at(Yhat, r, 0);
 
-		if (__approx_eq(y, positive_label) && __approx_eq(y, yhat))
+		if (__approx_eq(y, positive_label) && __approx_eq(yhat, positive_label))
 			TP++;
-		else if (!__approx_eq(y, positive_label) && __approx_eq(y, yhat))
+		else if (!__approx_eq(y, positive_label) && __approx_eq(yhat, positive_label))
 			FP++;
-		else if (__approx_eq(y, positive_label) && !__approx_eq(y, yhat))
+		else if (__approx_eq(y, positive_label) && !__approx_eq(yhat, positive_label))
 			FN++;
 	}
 

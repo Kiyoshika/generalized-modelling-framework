@@ -10,12 +10,7 @@
  */
 
 #include <stdio.h>
-#include "linear_model.h"
-#include "matrix.h"
-#include "util.h"
-#include "regularization.h"
-#include "regularization_gradient.h"
-#include "metrics.h"
+#include "linear_models.h"
 
 int main()
 {
@@ -27,7 +22,7 @@ int main()
 
 	// setup model parameters
 	gmf_model_linear_set_iterations(&lm, 10000);
-	gmf_model_linear_set_learning_rate(&lm, 0.001f);
+	gmf_model_linear_set_learning_rate(&lm, 0.0001f);
 	gmf_model_linear_set_model_type(&lm, CLASSIC);
 
 	// by default, early stop will happen after 10% of consecutive n_iterations

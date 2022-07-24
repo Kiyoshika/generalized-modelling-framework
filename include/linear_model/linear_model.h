@@ -6,11 +6,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include "activations.h"
-#include "losses.h"
-#include "loss_gradients.h"
-#include "gmf_util.h"
-
 // forward declaration
 typedef struct Matrix Matrix;
 
@@ -29,16 +24,19 @@ typedef struct LinearModelParams
 	size_t early_stop_iterations;
 	LinearModelType model_type; // type of optimization
 	size_t batch_size;
+	float huber_delta;
+	float sigmoid_threshold;
 	float* class_weights;
 	size_t* class_pair;
 	float* regularization_params;
 } LinearModelParams;
 
+typedef struct LinearModel LinearModel;
 typedef struct LinearModel
 {
 	LinearModelParams* params; 
 	Matrix* W; // weights (coefficients of the model) - set during fit()
-	void (*activation)(Matrix**);
+	void (*activation)(Matrix**, const LinearModel* lm);
 	float (*loss)(const Matrix*, const Matrix*, const LinearModel*); 
 	void (*loss_gradient)(const Matrix*, const Matrix*, const Matrix*, const LinearModel*, Matrix**);
 	float (*regularization)(const float*, const Matrix*);
@@ -118,7 +116,7 @@ void gmf_model_linear_set_regularization_params(
 // set activation function
 void gmf_model_linear_set_activation(
 	LinearModel** lm,
-	void (*activation)(Matrix**));
+	void (*activation)(Matrix**, const LinearModel*));
 
 // set loss function
 void gmf_model_linear_set_loss(
@@ -139,5 +137,16 @@ void gmf_model_linear_set_regularization(
 void gmf_model_linear_set_regularization_gradient(
 	LinearModel** lm,
 	float (*regularization_gradient)(const float*, const Matrix*));
+
+// set huber delta if using huber loss function
+void gmf_model_linear_set_huber_delta(
+		LinearModel** lm,
+		const float huber_delta);
+
+// set sigmoid threshold for gmf_activation_sigmoid_hard()
+// anything above this threshold will be labeled 1 and 0 otherwise
+void gmf_model_linear_set_sigmoid_threshold(
+		LinearModel** lm,
+		const float sigmoid_threshold);
 
 #endif

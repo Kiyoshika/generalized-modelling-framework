@@ -75,6 +75,8 @@ Below are the current built-in metrics:
 See [Linear Model Examples](src/linear_model/examples) for usage of mean absolute error and confusion matrix.
 
 ## Linear Models
+HEADER: `#include "linear_models.h"`
+
 Linear models (at the moment) are separated into two categories:
 * classic model
 * OVR model
@@ -130,8 +132,10 @@ LinearModelOVR* lm = ...
 gmf_model_linear_ovr_set_activation(&lm, &gmf_activation_...);
 ```
 
-* `gmf_activation_identity` - identity activation typically used in continuous regression, `f(x) = x`
-* `gmf_activation_sigmoid` - constrains output to [0, 1] typically used in classification, `f(x) = 1 / (1 + e^(-x))`
+* `gmf_activation_identity` - identity activation typically used in continuous regression: `f(x) = x`
+* `gmf_activation_sigmoid_soft` - constrains output to [0, 1] continuously; typically used in classification: `f(x) = 1 / (1 + e^(-x))`
+* `gmf_activation_sigmoid_hard` - constrains output to a hard 0 or 1 discretely; used in classification: `f(x) = 1 / (1 + e^(-x))`
+	* the cutoff threshold can be controlled with `sigmoid_threshold`. See parameter section for more detail
 
 ### Loss Functions
 These are the current supported loss functions (and their gradients). You can set a loss function (+ gradient) function as follows:
@@ -147,8 +151,13 @@ gmf_model_linear_ovr_set_loss(&lm, &gmf_loss_...);
 gmf_model_linear_ovr_set_loss_gradient(&lm, &gmf_loss_gradient_...);
 ```
 
-* `gmf_loss_squared` - squared loss, typically used in regression problems, `L(y, yhat) = (y - yhat)^2`
-* 'gmf_loss_cross_entropy` - typically used with continuous values in [0, 1], `L(y, yhat) = -ylog(yhat) - (1 - y)log(1 - yhat)`
+* `gmf_loss_squared` - typically used in regression problems, `L(y, yhat) = (y - yhat)^2`
+* `gmf_loss_absolute` - typically used in regression problems, `L(y, yhat) = |y - yhat|`
+* `gmf_loss_cross_entropy` - typically used with continuous values in [0, 1], `L(y, yhat) = -ylog(yhat) - (1 - y)log(1 - yhat)`
+* `gmf_loss_hinge` - used in classification problems. NOTE: this loss expects a hard 0 or 1 output. Formula taken from [Wikipedia](https://en.wikipedia.org/wiki/Hinge_loss) 
+* `gmf_loss_huber` - used in classification or regression problems. Formula taken from [Wikipedia](https://en.wikipedia.org/wiki/Huber_loss)
+	* This takes a `huber_delta` parameter, see parameters section for more detail.
+	* NOTE: for classification, people typically use a "modified huber" loss which is not implemented (yet) 
 
 The gradients follow the same naming convention as above, except use `loss_gradient` instead of just `loss_`
 
@@ -160,6 +169,8 @@ Linear models support a set of parameters defined below with their default value
 * `early_stop_iterations: n_iterations / 10` - minimum number of consecutive iterations where the difference in loss is below `early_stop_threshold`. Once this is reached, the model stops training early as it appears to have converged. If this is not met and `n_iterations` is complete, a warning as printed notifying the user that the model may not have converged yet. NOTE: if you want to disable early stop, you can set it equal to `n_iterations`.
 * `model_type: CLASSIC` - one of `CLASSIC`, `BATCH` or `STOCHASTIC` determining how to optimize the model. `CLASSIC` uses the entire training data each iteration, `BATCH` uses `batch_size` random data points per iteration and `STOCHASTIC` uses a single random data point per iteration.
 * `batch_size: n_rows / 4` - number of random data points to sample each iteration. Only used if `BATCH` is selected for `model_type`. `n_rows` represents the number of rows in the training set.
+* `huber_delta: 1.0` - A hyperparameter for `gmf_loss_huber`
+* `sigmoid_threshold: 0.5` - A hyperparameter for `gmf_activation_sigmoid_hard`. If the output of sigmoid is above this threshold, the label is converted to 1 and 0 otherwise.
 
 Parameters can be set as follows - they typically follow the same naming convention as the above names.
 ```c
@@ -182,6 +193,12 @@ gmf_model_linear_ovr_fit(X, Y, true); // or false
 ```
 
 If verbosity is off, it will still print warnings if the loss function hasn't "converged" and a note if the convergence stopped early.
+
+If desired, with OVR models you can change the individual model parameters instead of blanketing all models with the same parameter.
+```c
+// update the i-th model's parameter in an OVR model
+gmf_model_linear_set_[param](&ovr_model->models[i], [value]);
+```
 
 ### Class Weights
 OVR models support adjusting class weights. You can either manually specify weights or have them calculated automatically.

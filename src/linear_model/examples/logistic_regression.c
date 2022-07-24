@@ -10,16 +10,13 @@
  */
 
 #include <stdio.h>
-#include "linear_model.h"
-#include "matrix.h"
-#include "util.h"
-#include "metrics.h"
+#include "linear_models.h"
 
 int main()
 {
 	// setup model and its functions
 	LinearModel* lm = gmf_model_linear_init();
-	gmf_model_linear_set_activation(&lm, &gmf_activation_sigmoid);
+	gmf_model_linear_set_activation(&lm, &gmf_activation_sigmoid_hard);
 	gmf_model_linear_set_loss(&lm, &gmf_loss_cross_entropy);
 	gmf_model_linear_set_loss_gradient(&lm, &gmf_loss_gradient_cross_entropy);
 
@@ -43,13 +40,14 @@ int main()
 	mat_init(&Y, 10, 1);
 	mat_random(&Y, 0.0f, 1.0f);
 
-	// convert Y to hard 0 & 1
+	// convert Y into hard 0 & 1
+	// just using a dummy 0.5 threshold
 	for (size_t r = 0; r < Y->n_rows; ++r)
 	{
-		if (mat_at(Y, r, 0) < 0.5f)
-			mat_set(&Y, r, 0, 0.0f);
+		if (mat_at(Y, r, 0) > 0.5f)
+		   mat_set(&Y, r, 0, 1.0f);
 		else
-			mat_set(&Y, r, 0, 1.0f);
+			mat_set(&Y, r, 0, 0.0f);	
 	}
 
 	gmf_util_add_bias(&X);

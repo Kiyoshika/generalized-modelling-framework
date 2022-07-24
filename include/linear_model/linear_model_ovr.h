@@ -94,7 +94,7 @@ void gmf_model_linear_ovr_set_batch_size(
 // set activation function for all submodels in OVR model
 void gmf_model_linear_ovr_set_activation(
 		LinearModelOVR** lm,
-		void (*activation)(Matrix**));
+		void (*activation)(Matrix**, const LinearModel*));
 
 // set loss function for all submodels in OVR model
 void gmf_model_linear_ovr_set_loss(
@@ -121,5 +121,10 @@ void gmf_model_linear_ovr_set_regularization_params(
 		LinearModelOVR** lm,
 		const float* regularization_params,
 		const size_t n);
+
+// set huber delta parameter for huber loss in all submodels in OVR model
+void gmf_model_linear_ovr_set_huber_delta(
+		LinearModelOVR** lm,
+		const float huber_delta);
 
 #endif

@@ -29,6 +29,14 @@ target_include_directories(linear_model_ovr PUBLIC ${GMF_SOURCE_DIR}/include/lin
 target_include_directories(linear_model_ovr PUBLIC ${CMatrix_SOURCE_DIR}/include/matrix)
 target_link_libraries(linear_model_ovr linear_model gmf_util matrix)
 
+# FULL LIBRARY
+add_library(gmf gmf.c)
+target_link_libraries(gmf
+	linear_model
+	linear_model_ovr
+	gmf_util
+	matrix)
+
 # examples for linear model
 if (${EXAMPLES})
 	add_executable(least_squares linear_model/examples/least_squares.c)

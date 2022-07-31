@@ -1,6 +1,10 @@
 #ifndef KNN_H
 #define KNN_H
 
+#include "distances.h"
+#include <stddef.h>
+#include <stdlib.h>
+
 // forward declaration
 typedef struct Vector Vector;
 typedef struct Matrix Matrix;
@@ -14,7 +18,6 @@ typedef enum KNNType
 
 typedef struct KNNParams
 {
-	KNNType* knn_type,
 	float (*distance)(const Vector*, const Vector*);
 	size_t n_neighbors;
 } KNNParams;
@@ -22,6 +25,9 @@ typedef struct KNNParams
 typedef struct KNN
 {
 	KNNParams* params;
+	KNNType type;
+	Matrix* X;
+	Matrix* Y;
 } KNN;
 
 // initialize new KNN model and return a pointer
@@ -30,7 +36,7 @@ KNN* gmf_model_knn_init();
 // set KNN type
 void gmf_model_knn_set_type(
 		KNN** knn,
-		const KNNType knn_type);
+		const KNNType type);
 
 // set distance function
 void gmf_model_knn_set_distance(
@@ -50,7 +56,7 @@ void gmf_model_knn_fit(
 
 // find nearest neighbors
 Matrix* gmf_model_knn_predict(
-		KNN** knn, 
+		const KNN* knn, 
 		const Matrix* X);
 
 // free memory allocated by KNN model

@@ -1,6 +1,8 @@
 #ifndef DISTANCES_H
 #define DISTANCES_H
 
+#include <math.h>
+
 // forward declaration
 typedef struct Vector Vector;
 

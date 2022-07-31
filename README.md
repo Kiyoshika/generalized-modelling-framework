@@ -54,6 +54,10 @@ This is in-progress documentation as I develop the library.
 	* [Class Weights](#class-weights)
 	* [Regularization](#regularization)
 	* [Examples](#examples)
+* [Neighbor Models](#neighbor-models)
+	* [Memory Management](#memory-management-neighbors)
+	* [Nearest Neighbors](#nearest-neighbors)
+	* [Examples](#examples-neighbors)
 
 ## Namespace Structure
 Since C doesn't have namespaces, functions are organized into "namespaces" with underscore prefixes.
@@ -67,6 +71,7 @@ where `namespace1` and `namespace2` are:
 	* `linear` - linear model
 	* `linear_ovr` - one-vs-rest linear model for multi classification
 	* `linear_vec` - vectorized linear models for multi-dimensional output (coming soon)
+	* `knn` - K nearest neighbor model
 * `util` - contains utility functions
 * `metrics` - contains metrics to evaluate models
 * `activation` - contains all activation functions used in linear models
@@ -74,6 +79,7 @@ where `namespace1` and `namespace2` are:
 * `loss_gradient` - contains all loss function gradients used in linear models
 * `regularization` - contains all regularization functions used in linear models
 * `regularization_gradient` - contains all regularization gradients used in linear models
+* `distance` - contains all distance functions used in neighbor-based models
 
 and `funcs` represents all function names inside those two namespaces. See header files for exact names.
 
@@ -97,8 +103,8 @@ See [Linear Model Examples](src/linear_model/examples) for usage of mean absolut
 HEADER: `#include "linear_models.h"`
 
 Linear models (at the moment) are separated into two categories:
-* classic model
-* OVR model
+* [classic model](include/linear_model/linear_model.h)
+* [OVR model](include/linear_model/linear_model_ovr.h)
 * vector model (coming soon - undocumented)
 
 Linear models are optimized via gradient descent. All models MUST have an activation, loss and loss gradient set. See below sections.
@@ -255,3 +261,53 @@ For a full example, see [Regularization Example](src/linear_model/examples/regul
 
 ### Examples
 For examples on usage for linear model, see [Linear Model Examples](src/linear_model/examples)
+
+## Neighbor Models
+This is a collection of models that are based on neighboring data points.
+
+### Nearest Neighbors
+HEADER: [#include "knn.h"](include/neighbors/knn.h) 
+
+Find the K closest data points and take the average of their target.
+
+Data points are compared by distance functions (`gmf_distance_...`)
+
+There are two types of KNN models:
+* `CLASSIC` - the naive implementation where each test point has its distance compared to every training point
+* `KDTree` - training data is stored in a KDTree structure to make traversing nearest neighbors quicker
+
+You can set types with:
+```c
+KNN* knn = ...
+gmf_model_knn_set_type(&knn, CLASSIC); // or KDTree
+```
+
+`CLASSIC` is the default type (for now, until KDTree is implemented)
+
+#### Parameters
+Below is a list of parameters and their defualt values for nearest neighbor model.
+
+* `distance: euclidean` - distance function to compare two points. see [distance](include/neighbors/distances.h) functions for complete list
+* `n_neighbors: 3` - number of neighbors to compare test points with training points
+
+You can set parameters with:
+```c
+KNN* knn = ...
+gmf_model_knn_set_[param](&knn, [value]);
+```
+
+Where `[param]` is one of
+* `type` (see previous section)
+* `distance`
+* `neighbors` 
+
+```c
+// create new KNN model
+KNN* knn = gmf_model_knn_init();
+
+// cleanup memory
+gmf_model_knn_free(&knn);
+```
+
+## Examples (Neighbors)
+See the [examples](src/neighbors/examples) for neighbor models

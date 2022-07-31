@@ -55,7 +55,6 @@ This is in-progress documentation as I develop the library.
 	* [Regularization](#regularization)
 	* [Examples](#examples)
 * [Neighbor Models](#neighbor-models)
-	* [Memory Management](#memory-management-neighbors)
 	* [Nearest Neighbors](#nearest-neighbors)
 	* [Examples](#examples-neighbors)
 
@@ -268,9 +267,17 @@ This is a collection of models that are based on neighboring data points.
 ### Nearest Neighbors
 HEADER: [#include "knn.h"](include/neighbors/knn.h) 
 
+```c
+// create new KNN model
+KNN* knn = gmf_model_knn_init();
+
+// cleanup memory
+gmf_model_knn_free(&knn);
+```
+
 Find the K closest data points and take the average of their target.
 
-Data points are compared by distance functions (`gmf_distance_...`)
+Data points are compared by [distance](include/neighbors/distances.h) functions (`gmf_distance_...`)
 
 There are two types of KNN models:
 * `CLASSIC` - the naive implementation where each test point has its distance compared to every training point
@@ -300,14 +307,6 @@ Where `[param]` is one of
 * `type` (see previous section)
 * `distance`
 * `neighbors` 
-
-```c
-// create new KNN model
-KNN* knn = gmf_model_knn_init();
-
-// cleanup memory
-gmf_model_knn_free(&knn);
-```
 
 ## Examples (Neighbors)
 See the [examples](src/neighbors/examples) for neighbor models
